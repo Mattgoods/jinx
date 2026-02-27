@@ -1,6 +1,7 @@
 {
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/api/groups/detail", "destination": "/api/groups/manage?action=detail" },
     { "source": "/api/groups/create", "destination": "/api/groups/manage?action=create" },
     { "source": "/api/groups/join", "destination": "/api/groups/manage?action=join" },
     { "source": "/api/groups/members", "destination": "/api/groups/manage?action=members" },

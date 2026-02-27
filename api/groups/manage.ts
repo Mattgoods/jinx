@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth.js'
 import { supabase } from '../_lib/supabase.js'
-import { validateString, validateUUID, firstError } from '../_lib/validation.js'
+import { isUUID, validateString, validateUUID, firstError } from '../_lib/validation.js'
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -218,10 +218,80 @@ async function handleRegenerateInvite(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({ data: { inviteCode } })
 }
 
+async function handleDetail(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: { code: 'METHOD_NOT_ALLOWED', message: 'GET only' } })
+  }
+
+  const auth = await verifyAuth(req)
+  const groupId = req.query.groupId as string
+
+  if (!groupId || !isUUID(groupId)) {
+    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Group ID must be a valid UUID' } })
+  }
+
+  // Verify membership
+  const { data: membership } = await supabase
+    .from('group_members')
+    .select('id')
+    .eq('user_id', auth.userId)
+    .eq('group_id', groupId)
+    .single()
+
+  if (!membership) {
+    return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Not a member of this group' } })
+  }
+
+  // Get group details
+  const { data: group } = await supabase
+    .from('groups')
+    .select('id, name, invite_code, admin_user_id, weekly_token_amount, token_distribution_day')
+    .eq('id', groupId)
+    .single()
+
+  if (!group) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Group not found' } })
+  }
+
+  // Get members
+  const { data: members, error: membersError } = await supabase
+    .from('group_members')
+    .select(`
+      id,
+      user_id,
+      token_balance,
+      users (display_name, avatar_url)
+    `)
+    .eq('group_id', groupId)
+
+  if (membersError) {
+    console.error('Members query error:', membersError)
+  }
+
+  const formattedMembers = (members || []).map((m) => ({
+    id: m.id,
+    user_id: m.user_id,
+    display_name: (m.users as unknown as { display_name: string })?.display_name || 'Unknown',
+    avatar_url: (m.users as unknown as { avatar_url: string | null })?.avatar_url || null,
+    token_balance: m.token_balance,
+  }))
+
+  return res.status(200).json({
+    data: {
+      group: {
+        ...group,
+        isAdmin: group.admin_user_id === auth.userId,
+        members: formattedMembers,
+      },
+    },
+  })
+}
+
 const actions: Record<string, (req: VercelRequest, res: VercelResponse) => Promise<VercelResponse | void>> = {
   create: handleCreate,
   join: handleJoin,
   members: handleMembers,
+  detail: handleDetail,
   'regenerate-invite': handleRegenerateInvite,
 }
 

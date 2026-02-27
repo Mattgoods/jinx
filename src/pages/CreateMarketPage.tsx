@@ -29,7 +29,7 @@ export function CreateMarketPage() {
   useEffect(() => {
     if (!groupId) return
     setLoadingMembers(true)
-    api(`/groups/${groupId}`)
+    api(`/groups/detail?groupId=${groupId}`)
       .then((res: { data: { group: { members: GroupMember[] } } }) => {
         setMembers(res.data.group.members || [])
       })

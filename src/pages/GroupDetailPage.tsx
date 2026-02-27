@@ -48,7 +48,7 @@ export function GroupDetailPage() {
 
   useEffect(() => {
     if (!groupId) return
-    api(`/groups/${groupId}`)
+    api(`/groups/detail?groupId=${groupId}`)
       .then((res: { data: { group: GroupInfo } }) => setGroup(res.data.group))
       .catch(console.error)
   }, [api, groupId])
