@@ -96,10 +96,10 @@ async function handleDetail(req: VercelRequest, res: VercelResponse) {
     return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Market not found' } })
   }
 
-  // Verify group membership
+  // Verify group membership and get balance
   const { data: membership } = await supabase
     .from('group_members')
-    .select('id')
+    .select('id, token_balance')
     .eq('user_id', auth.userId)
     .eq('group_id', market.group_id)
     .single()
@@ -154,6 +154,7 @@ async function handleDetail(req: VercelRequest, res: VercelResponse) {
     },
     bets: formattedBets,
     isTarget,
+    userBalance: membership.token_balance,
   }
 
   return res.status(200).json({ data: response })

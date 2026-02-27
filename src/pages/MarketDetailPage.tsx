@@ -36,19 +36,23 @@ export function MarketDetailPage() {
   const [market, setMarket] = useState<Market | null>(null)
   const [bets, setBets] = useState<Bet[]>([])
   const [betSide, setBetSide] = useState<'yes' | 'no'>('yes')
-  const [betAmount, setBetAmount] = useState(10)
+  const [betAmountStr, setBetAmountStr] = useState('')
   const [error, setError] = useState('')
   const [betError, setBetError] = useState('')
   const [placing, setPlacing] = useState(false)
   const [isTarget, setIsTarget] = useState(false)
+  const [userBalance, setUserBalance] = useState<number | null>(null)
+
+  const betAmount = Number(betAmountStr) || 0
 
   useEffect(() => {
     if (!id) return
     api(`/markets/detail?marketId=${id}`)
-      .then((res: { data: { market: Market; bets: Bet[]; isTarget: boolean } }) => {
+      .then((res: { data: { market: Market; bets: Bet[]; isTarget: boolean; userBalance: number } }) => {
         setMarket(res.data.market)
         setBets(res.data.bets)
         setIsTarget(res.data.isTarget)
+        setUserBalance(res.data.userBalance)
       })
       .catch(console.error)
   }, [id, api])
@@ -71,9 +75,13 @@ export function MarketDetailPage() {
           side: betSide,
           amount: betAmount,
         }),
-      }) as { data: { bet: Bet; updatedMarket: Market } }
+      }) as { data: { bet: Bet; updatedMarket: Market; newBalance?: number } }
       setMarket(res.data.updatedMarket)
       setBets((prev) => [...prev, res.data.bet])
+      if (res.data.newBalance !== undefined) {
+        setUserBalance(res.data.newBalance)
+      }
+      setBetAmountStr('')
       addToast(`Bet placed! ${betAmount} tokens on ${betSide.toUpperCase()}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to place bet')
@@ -166,15 +174,19 @@ export function MarketDetailPage() {
               id="bet-amount"
               type="number"
               min="1"
-              value={betAmount}
-              onChange={(e) => setBetAmount(Number(e.target.value))}
+              value={betAmountStr}
+              onChange={(e) => setBetAmountStr(e.target.value)}
+              placeholder="Enter amount"
               className="w-full rounded-lg border border-border bg-bg-primary px-4 py-2 font-mono text-text-primary focus:border-accent-green focus:outline-none"
             />
             {betError && <p className="mt-1 text-sm text-accent-red">{betError}</p>}
           </div>
-          <p className="mb-4 text-sm text-text-secondary">
-            Potential payout: <TokenAmount amount={previewPayout} /> tokens
-          </p>
+          <div className="mb-4 flex flex-wrap gap-4 text-sm text-text-secondary">
+            <span>Potential payout: <TokenAmount amount={previewPayout} /> tokens</span>
+            {userBalance !== null && (
+              <span>Your balance: <TokenAmount amount={userBalance} /></span>
+            )}
+          </div>
           {error && <p className="mb-4 text-sm text-accent-red">{error}</p>}
           <Button onClick={handlePlaceBet} disabled={placing || betAmount < 1} className="w-full">
             {placing ? 'Placing...' : `Place ${betSide.toUpperCase()} bet`}
