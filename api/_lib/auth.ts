@@ -1,5 +1,5 @@
 import { verifyToken } from '@clerk/backend'
-import { supabase } from './supabase.ts'
+import { supabase } from './supabase'
 import type { VercelRequest } from '@vercel/node'
 
 export interface AuthContext {
