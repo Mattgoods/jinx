@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Get members
-    const { data: members } = await supabase
+    const { data: members, error: membersError } = await supabase
       .from('group_members')
       .select(`
         id,
@@ -49,6 +49,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         users (display_name, avatar_url)
       `)
       .eq('group_id', groupId)
+
+    if (membersError) {
+      console.error('Members query error:', membersError)
+    }
 
     const formattedMembers = (members || []).map((m) => ({
       id: m.id,

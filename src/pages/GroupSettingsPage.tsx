@@ -27,8 +27,12 @@ export function GroupSettingsPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [accessDenied, setAccessDenied] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!groupId) return
+    setLoading(true)
     api(`/groups/settings?groupId=${groupId}`)
       .then((res: { data: { group: GroupSettings } }) => {
         const g = res.data.group
@@ -37,7 +41,15 @@ export function GroupSettingsPage() {
         setWeeklyTokenAmount(g.weekly_token_amount)
         setDistributionDay(g.token_distribution_day)
       })
-      .catch(console.error)
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Failed to load settings'
+        if (message.toLowerCase().includes('not the admin') || message.toLowerCase().includes('forbidden')) {
+          setAccessDenied(true)
+        } else {
+          setError(message)
+        }
+      })
+      .finally(() => setLoading(false))
   }, [api, groupId])
 
   async function handleSave(e: React.FormEvent) {
@@ -108,8 +120,36 @@ export function GroupSettingsPage() {
     }
   }
 
-  if (!settings) {
+  if (loading) {
     return <LoadingState />
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="mx-auto max-w-lg py-6">
+        <PageHeader title="Group Settings" />
+        <Card>
+          <p className="text-center text-text-secondary">Only the group administrator can access settings.</p>
+          <div className="mt-4 text-center">
+            <Button as="link" to={`/group/${groupId}`} variant="ghost">Back to Group</Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!settings) {
+    return (
+      <div className="mx-auto max-w-lg py-6">
+        <PageHeader title="Group Settings" />
+        <Card>
+          <p className="text-center text-accent-red">{error || 'Failed to load settings.'}</p>
+          <div className="mt-4 text-center">
+            <Button as="link" to={`/group/${groupId}`} variant="ghost">Back to Group</Button>
+          </div>
+        </Card>
+      </div>
+    )
   }
 
   return (

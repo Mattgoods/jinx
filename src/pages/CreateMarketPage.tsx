@@ -24,13 +24,20 @@ export function CreateMarketPage() {
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [loadingMembers, setLoadingMembers] = useState(true)
 
   useEffect(() => {
+    if (!groupId) return
+    setLoadingMembers(true)
     api(`/groups/${groupId}`)
       .then((res: { data: { group: { members: GroupMember[] } } }) => {
         setMembers(res.data.group.members || [])
       })
-      .catch(console.error)
+      .catch((err: unknown) => {
+        console.error('Failed to load group members:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load group members')
+      })
+      .finally(() => setLoadingMembers(false))
   }, [api, groupId])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -95,7 +102,7 @@ export function CreateMarketPage() {
           error={fieldErrors.target}
           required
         >
-          <option value="">Select a person...</option>
+          <option value="">{loadingMembers ? 'Loading members...' : 'Select a person...'}</option>
           {members.map((m) => (
             <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
           ))}
