@@ -34,7 +34,7 @@ export function LeaderboardPage() {
 
   return (
     <div className="mx-auto max-w-2xl py-6">
-      <PageHeader title="Leaderboard" />
+      <PageHeader title="Leaderboard" backTo={`/group/${groupId}`} backLabel="Group" />
       {entries.length === 0 ? (
         <p className="text-text-tertiary">No resolved bets yet.</p>
       ) : (

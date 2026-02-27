@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
 import { Card, Avatar, StatusBadge, TokenAmount, LoadingState } from '../components/ui'
 
@@ -35,6 +36,12 @@ export function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl py-6">
+      <Link
+        to="/dashboard"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-text-secondary transition-colors hover:text-text-primary"
+      >
+        <span aria-hidden="true">&larr;</span> Dashboard
+      </Link>
       <div className="mb-6 flex items-center gap-4">
         <Avatar src={profile.user.avatar_url} name={profile.user.display_name} size="lg" />
         <h1 className="text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>

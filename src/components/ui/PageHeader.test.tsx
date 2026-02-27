@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { PageHeader } from './PageHeader'
 
 describe('PageHeader', () => {
@@ -27,5 +28,29 @@ describe('PageHeader', () => {
     render(<PageHeader title="Styled" />)
     const heading = screen.getByRole('heading')
     expect(heading).toHaveStyle({ letterSpacing: '-0.02em' })
+  })
+
+  it('renders a back link when backTo is provided', () => {
+    render(
+      <MemoryRouter>
+        <PageHeader title="Settings" backTo="/dashboard" backLabel="Dashboard" />
+      </MemoryRouter>
+    )
+    const link = screen.getByRole('link', { name: /Dashboard/ })
+    expect(link).toHaveAttribute('href', '/dashboard')
+  })
+
+  it('uses "Back" as default back label', () => {
+    render(
+      <MemoryRouter>
+        <PageHeader title="Page" backTo="/home" />
+      </MemoryRouter>
+    )
+    expect(screen.getByText('Back')).toBeInTheDocument()
+  })
+
+  it('does not render a back link when backTo is omitted', () => {
+    render(<PageHeader title="No Back" />)
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })

@@ -39,7 +39,7 @@ export function CreateGroupPage() {
 
   return (
     <div className="mx-auto max-w-md py-12">
-      <PageHeader title="Create Group" />
+      <PageHeader title="Create Group" backTo="/dashboard" backLabel="Dashboard" />
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           label="Group Name"

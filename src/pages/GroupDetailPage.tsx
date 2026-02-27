@@ -80,7 +80,7 @@ export function GroupDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl py-6">
-      <PageHeader title={group.name}>
+      <PageHeader title={group.name} backTo="/dashboard" backLabel="Dashboard">
         <div className="flex gap-2">
           <Button as="link" to={`/group/${groupId}/markets/new`} size="sm">
             New Market

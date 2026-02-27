@@ -39,7 +39,7 @@ export function JoinGroupPage() {
 
   return (
     <div className="mx-auto max-w-md py-12">
-      <PageHeader title="Join Group" />
+      <PageHeader title="Join Group" backTo="/dashboard" backLabel="Dashboard" />
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           label="Invite Code"

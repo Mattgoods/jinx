@@ -91,7 +91,7 @@ export function CreateMarketPage() {
 
   return (
     <div className="mx-auto max-w-md py-6">
-      <PageHeader title="New Market" />
+      <PageHeader title="New Market" backTo={`/group/${groupId}`} backLabel="Group" />
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           as="select"

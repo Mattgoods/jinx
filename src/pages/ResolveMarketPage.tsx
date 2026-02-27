@@ -57,7 +57,7 @@ export function ResolveMarketPage() {
 
   return (
     <div className="mx-auto max-w-md py-12">
-      <PageHeader title="Resolve Market" />
+      <PageHeader title="Resolve Market" backTo={`/markets/${id}`} backLabel="Market" />
       <Card className="mb-6">
         <p className="text-sm text-text-secondary">
           Did <span className="font-semibold text-text-primary">{market.target_display_name}</span> say...

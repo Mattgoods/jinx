@@ -127,12 +127,9 @@ export function GroupSettingsPage() {
   if (accessDenied) {
     return (
       <div className="mx-auto max-w-lg py-6">
-        <PageHeader title="Group Settings" />
+        <PageHeader title="Group Settings" backTo={`/group/${groupId}`} backLabel="Group" />
         <Card>
           <p className="text-center text-text-secondary">Only the group administrator can access settings.</p>
-          <div className="mt-4 text-center">
-            <Button as="link" to={`/group/${groupId}`} variant="ghost">Back to Group</Button>
-          </div>
         </Card>
       </div>
     )
@@ -141,12 +138,9 @@ export function GroupSettingsPage() {
   if (!settings) {
     return (
       <div className="mx-auto max-w-lg py-6">
-        <PageHeader title="Group Settings" />
+        <PageHeader title="Group Settings" backTo={`/group/${groupId}`} backLabel="Group" />
         <Card>
           <p className="text-center text-accent-red">{error || 'Failed to load settings.'}</p>
-          <div className="mt-4 text-center">
-            <Button as="link" to={`/group/${groupId}`} variant="ghost">Back to Group</Button>
-          </div>
         </Card>
       </div>
     )
@@ -154,7 +148,7 @@ export function GroupSettingsPage() {
 
   return (
     <div className="mx-auto max-w-lg py-6">
-      <PageHeader title="Group Settings" />
+      <PageHeader title="Group Settings" backTo={`/group/${groupId}`} backLabel="Group" />
 
       <form onSubmit={handleSave} className="mb-8 space-y-4">
         <FormField

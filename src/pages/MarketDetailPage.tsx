@@ -104,6 +104,12 @@ export function MarketDetailPage() {
 
   return (
     <div className="mx-auto max-w-2xl py-6">
+      <Link
+        to={`/group/${market.group_id}`}
+        className="mb-4 inline-flex items-center gap-1 text-sm text-text-secondary transition-colors hover:text-text-primary"
+      >
+        <span aria-hidden="true">&larr;</span> Group
+      </Link>
       <Card padding="lg" className="mb-6">
         <div className="mb-4 flex items-start justify-between">
           <div>
