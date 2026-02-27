@@ -13,24 +13,27 @@ import { MarketDetailPage } from './pages/MarketDetailPage.tsx'
 import { ResolveMarketPage } from './pages/ResolveMarketPage.tsx'
 import { LeaderboardPage } from './pages/LeaderboardPage.tsx'
 import { ProfilePage } from './pages/ProfilePage.tsx'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 export function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/sign-in/*" element={<SignInPage />} />
-      <Route path="/sign-up/*" element={<SignUpPage />} />
-      <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/group/create" element={<CreateGroupPage />} />
-        <Route path="/group/join" element={<JoinGroupPage />} />
-        <Route path="/group/settings" element={<GroupSettingsPage />} />
-        <Route path="/markets/new" element={<CreateMarketPage />} />
-        <Route path="/markets/:id" element={<MarketDetailPage />} />
-        <Route path="/markets/:id/resolve" element={<ResolveMarketPage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-      </Route>
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/sign-in/*" element={<SignInPage />} />
+        <Route path="/sign-up/*" element={<SignUpPage />} />
+        <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/group/create" element={<CreateGroupPage />} />
+          <Route path="/group/join" element={<JoinGroupPage />} />
+          <Route path="/group/:groupId/settings" element={<GroupSettingsPage />} />
+          <Route path="/group/:groupId/markets/new" element={<CreateMarketPage />} />
+          <Route path="/group/:groupId/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/markets/:id" element={<MarketDetailPage />} />
+          <Route path="/markets/:id/resolve" element={<ResolveMarketPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+      </Routes>
+    </ErrorBoundary>
   )
 }

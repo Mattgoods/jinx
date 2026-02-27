@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
 
 interface LeaderboardEntry {
@@ -12,18 +13,19 @@ interface LeaderboardEntry {
 }
 
 export function LeaderboardPage() {
+  const { groupId } = useParams<{ groupId: string }>()
   const api = useApiClient()
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api('/leaderboard')
+    api(`/leaderboard?groupId=${groupId}`)
       .then((res: { data: { leaderboard: LeaderboardEntry[] } }) => {
         setEntries(res.data.leaderboard)
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [api])
+  }, [api, groupId])
 
   if (loading) {
     return <div className="text-text-secondary">Loading...</div>

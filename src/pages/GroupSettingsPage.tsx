@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -13,6 +14,7 @@ interface GroupSettings {
 }
 
 export function GroupSettingsPage() {
+  const { groupId } = useParams<{ groupId: string }>()
   const api = useApiClient()
   const [settings, setSettings] = useState<GroupSettings | null>(null)
   const [name, setName] = useState('')
@@ -23,7 +25,7 @@ export function GroupSettingsPage() {
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    api('/groups/settings')
+    api(`/groups/settings?groupId=${groupId}`)
       .then((res: { data: { group: GroupSettings } }) => {
         const g = res.data.group
         setSettings(g)
@@ -32,7 +34,7 @@ export function GroupSettingsPage() {
         setDistributionDay(g.token_distribution_day)
       })
       .catch(console.error)
-  }, [api])
+  }, [api, groupId])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -40,7 +42,7 @@ export function GroupSettingsPage() {
     setError('')
     setSuccess('')
     try {
-      const res = await api('/groups/settings', {
+      const res = await api(`/groups/settings?groupId=${groupId}`, {
         method: 'PUT',
         body: JSON.stringify({
           name,
@@ -59,7 +61,10 @@ export function GroupSettingsPage() {
 
   async function handleRegenerateInvite() {
     try {
-      const res = await api('/groups/regenerate-invite', { method: 'POST' }) as { data: { inviteCode: string } }
+      const res = await api('/groups/regenerate-invite', {
+        method: 'POST',
+        body: JSON.stringify({ groupId }),
+      }) as { data: { inviteCode: string } }
       if (settings) {
         setSettings({ ...settings, invite_code: res.data.inviteCode })
       }
@@ -72,7 +77,7 @@ export function GroupSettingsPage() {
     try {
       await api('/groups/members', {
         method: 'DELETE',
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, groupId }),
       })
       if (settings) {
         setSettings({

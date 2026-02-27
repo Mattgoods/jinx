@@ -4,7 +4,6 @@ import { useUserSync } from '../hooks/useUserSync.tsx'
 
 const navLinks = [
   { to: '/dashboard', label: 'Dashboard' },
-  { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/profile', label: 'Profile' },
 ]
 

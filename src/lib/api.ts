@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/clerk-react'
 import { useCallback } from 'react'
 
 export function useApiClient() {
-  const { getToken } = useAuth()
+  const { getToken, signOut } = useAuth()
 
   return useCallback(
     async (path: string, options: RequestInit = {}) => {
@@ -16,11 +16,16 @@ export function useApiClient() {
         },
       })
       if (!res.ok) {
+        if (res.status === 401) {
+          await signOut()
+          window.location.href = '/sign-in'
+          throw new Error('Session expired')
+        }
         const err = await res.json()
         throw new Error(err.error?.message || 'Request failed')
       }
       return res.json()
     },
-    [getToken],
+    [getToken, signOut],
   )
 }

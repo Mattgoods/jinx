@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
 
 interface GroupMember {
@@ -8,6 +8,7 @@ interface GroupMember {
 }
 
 export function CreateMarketPage() {
+  const { groupId } = useParams<{ groupId: string }>()
   const api = useApiClient()
   const navigate = useNavigate()
   const [members, setMembers] = useState<GroupMember[]>([])
@@ -19,15 +20,12 @@ export function CreateMarketPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    api('/users/profile')
-      .then((res: { data: { memberships: Array<{ members: GroupMember[] }> } }) => {
-        const firstGroup = res.data.memberships?.[0]
-        if (firstGroup?.members) {
-          setMembers(firstGroup.members)
-        }
+    api(`/groups/${groupId}`)
+      .then((res: { data: { group: { members: GroupMember[] } } }) => {
+        setMembers(res.data.group.members || [])
       })
       .catch(console.error)
-  }, [api])
+  }, [api, groupId])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +35,7 @@ export function CreateMarketPage() {
       const res = await api('/markets/create', {
         method: 'POST',
         body: JSON.stringify({
+          groupId,
           targetUserId,
           secretWord: secretWord.trim(),
           windowStart: new Date(windowStart).toISOString(),

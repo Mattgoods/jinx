@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
 
 interface Group {
-  id: string
-  name: string
-  invite_code: string
+  group_id: string
+  group_name: string
   token_balance: number
 }
 
@@ -60,23 +59,51 @@ export function Dashboard() {
         <h1 className="text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
           Dashboard
         </h1>
-        <Link
-          to="/markets/new"
-          className="rounded-lg bg-accent-green px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-green/90"
-        >
-          New Market
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            to="/group/create"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+          >
+            Create Group
+          </Link>
+          <Link
+            to="/group/join"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+          >
+            Join Group
+          </Link>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {groups.map((group) => (
           <div
-            key={group.id}
+            key={group.group_id}
             className="card-enter rounded-xl border border-border bg-bg-surface p-5 transition-colors hover:bg-bg-hover"
           >
-            <h3 className="mb-2 text-lg font-semibold text-text-primary">{group.name}</h3>
-            <p className="font-mono text-sm font-semibold text-accent-amber">
+            <h3 className="mb-3 text-lg font-semibold text-text-primary">{group.group_name}</h3>
+            <p className="mb-4 font-mono text-sm font-semibold text-accent-amber">
               {group.token_balance} tokens
             </p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                to={`/group/${group.group_id}/markets/new`}
+                className="rounded-lg bg-accent-green px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-green/90"
+              >
+                New Market
+              </Link>
+              <Link
+                to={`/group/${group.group_id}/leaderboard`}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+              >
+                Leaderboard
+              </Link>
+              <Link
+                to={`/group/${group.group_id}/settings`}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+              >
+                Settings
+              </Link>
+            </div>
           </div>
         ))}
       </div>

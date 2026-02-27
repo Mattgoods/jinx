@@ -71,6 +71,14 @@ A social prediction market where friends bet fake currency on whether someone wi
 - `src/components/AppLayout.tsx`: nav with links + UserButton
 - All pages use consistent design: bg-surface cards, border-border, accent colors, font-mono for numbers
 
+### Phase 9 — Hardening (Partial) ✅
+- Error boundary wrapping the entire app (`src/components/ErrorBoundary.tsx`)
+- 401 response interception in `useApiClient()` → auto sign-out + redirect to `/sign-in`
+
+### Bug Fix: Group Context Routing ✅
+- **Problem:** Multiple pages (GroupSettingsPage, CreateMarketPage, LeaderboardPage) lacked group context. Settings and regenerate-invite APIs assumed one group per admin (`.single()` lookup by `admin_user_id`). CreateMarketPage used `memberships?.[0]` to pick the first group. LeaderboardPage called `/leaderboard` with no groupId. Dashboard group cards had no navigation links.
+- **Fix:** Added `:groupId` to routes (`/group/:groupId/settings`, `/group/:groupId/markets/new`, `/group/:groupId/leaderboard`). Created `api/groups/[id].ts` for group detail + member list accessible to any group member. Fixed `settings.ts` and `regenerate-invite.ts` to accept `groupId` param. Updated all frontend pages to use `useParams()`. Dashboard group cards now link to group-scoped pages (New Market, Leaderboard, Settings). Removed global Leaderboard from nav (now group-scoped).
+
 ---
 
 ## Remaining Work
@@ -84,8 +92,6 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Mobile responsive nav (hamburger/bottom tab bar)
 
 ### Phase 9 — Hardening
-- Error boundary wrapping the app
-- 401 response interception → redirect to `/sign-in`
 - Input validation (consider zod)
 - Environment variable validation on serverless startup
 
@@ -99,3 +105,4 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Token distribution idempotency:** checks `token_distributions` for existing record within current ISO week
 - **Race condition protection:** `place_bet` RPC uses `SELECT ... FOR UPDATE` on `group_members`
 - **Lazy status transitions:** `GET /api/markets` and `GET /api/markets/[id]` auto-transition active markets past `window_end` to `pending_resolution`
+- **Group context routing:** All group-scoped pages use `:groupId` URL param. `api/groups/[id].ts` returns group detail + members for any group member. Settings/regenerate-invite APIs require explicit `groupId` param.

@@ -19,15 +19,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const auth = await verifyAuth(req)
 
-    // Find group where user is admin
+    const { groupId } = req.body
+    if (!groupId) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId is required' } })
+    }
+
+    // Verify the user is admin of this specific group
     const { data: group } = await supabase
       .from('groups')
       .select('id')
+      .eq('id', groupId)
       .eq('admin_user_id', auth.userId)
       .single()
 
     if (!group) {
-      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Not a group admin' } })
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Not the admin of this group' } })
     }
 
     // Generate new unique code
