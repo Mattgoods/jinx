@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { Button, FormField, PageHeader } from '../components/ui'
 
 export function CreateGroupPage() {
   const api = useApiClient()
@@ -29,32 +30,21 @@ export function CreateGroupPage() {
 
   return (
     <div className="mx-auto max-w-md py-12">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
-        Create Group
-      </h1>
+      <PageHeader title="Create Group" />
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="group-name" className="mb-1 block text-sm font-medium text-text-secondary">
-            Group Name
-          </label>
-          <input
-            id="group-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-border bg-bg-surface px-4 py-2 text-text-primary placeholder-text-tertiary focus:border-accent-green focus:outline-none"
-            placeholder="My Prediction Group"
-            required
-          />
-        </div>
+        <FormField
+          label="Group Name"
+          id="group-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="My Prediction Group"
+          required
+        />
         {error && <p className="text-sm text-accent-red">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-accent-green px-4 py-2 font-semibold text-white transition-colors hover:bg-accent-green/90 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Creating...' : 'Create Group'}
-        </button>
+        </Button>
       </form>
     </div>
   )

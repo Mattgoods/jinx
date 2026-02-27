@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { Button, FormField, PageHeader } from '../components/ui'
 
 export function JoinGroupPage() {
   const api = useApiClient()
@@ -29,32 +30,22 @@ export function JoinGroupPage() {
 
   return (
     <div className="mx-auto max-w-md py-12">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
-        Join Group
-      </h1>
+      <PageHeader title="Join Group" />
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="invite-code" className="mb-1 block text-sm font-medium text-text-secondary">
-            Invite Code
-          </label>
-          <input
-            id="invite-code"
-            type="text"
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
-            className="w-full rounded-lg border border-border bg-bg-surface px-4 py-2 font-mono text-text-primary placeholder-text-tertiary focus:border-accent-green focus:outline-none"
-            placeholder="ABC12345"
-            required
-          />
-        </div>
+        <FormField
+          label="Invite Code"
+          id="invite-code"
+          type="text"
+          value={inviteCode}
+          onChange={(e) => setInviteCode(e.target.value)}
+          placeholder="ABC12345"
+          mono
+          required
+        />
         {error && <p className="text-sm text-accent-red">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-accent-green px-4 py-2 font-semibold text-white transition-colors hover:bg-accent-green/90 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Joining...' : 'Join Group'}
-        </button>
+        </Button>
       </form>
     </div>
   )

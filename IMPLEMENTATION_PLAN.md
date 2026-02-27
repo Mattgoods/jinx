@@ -18,66 +18,70 @@ A social prediction market where friends bet fake currency on whether someone wi
 - ESLint configured, TypeScript strict mode enabled
 
 ### Phase 1 — Database Schema ✅
-- `supabase/migrations/001_initial_schema.sql` created with:
-  - Custom ENUMs: `market_status`, `bet_side`
-  - All 6 tables: `users`, `groups`, `group_members`, `markets`, `bets`, `token_distributions`
-  - Indexes on all FKs and commonly queried columns
-  - CHECK constraints for data integrity
-  - RLS enabled on all tables with SELECT policies
-  - `increment_balance` RPC for atomic balance changes
-  - `place_bet` RPC with `SELECT ... FOR UPDATE` for race condition protection
+- `supabase/migrations/001_initial_schema.sql` created with all 6 tables, indexes, RLS, RPCs
 
 ### Phase 2 — Authentication ✅
-- `src/main.tsx`: ClerkProvider + BrowserRouter wrapping App
-- `src/components/RequireAuth.tsx`: redirects unauthenticated users to `/sign-in`
-- `src/App.tsx`: full route tree with all pages
-- `src/lib/api.ts`: `useApiClient()` hook — auto-attaches Clerk Bearer token
-- `src/hooks/useUserSync.tsx`: calls `POST /api/users/sync` on sign-in
-- `api/_lib/auth.ts`: `verifyAuth()`, `requireGroupMember()`, `requireGroupAdmin()`, error response helpers
-- `api/_lib/supabase.ts`: singleton Supabase client with service role key
-- `api/users/sync.ts`: upsert user from Clerk profile
+- ClerkProvider, RequireAuth, useApiClient with 401 interception, useUserSync, server-side auth verification
 
 ### Phase 3 — Groups ✅
-- `api/groups/create.ts`: create group with unique 8-char invite code, creator as admin + first member
-- `api/groups/join.ts`: join via invite code, duplicate check
-- `api/groups/settings.ts`: GET/PUT group settings (admin only), validation
-- `api/groups/members.ts`: DELETE member (admin only, cannot remove self)
-- `api/groups/regenerate-invite.ts`: regenerate invite code (admin only)
-- `src/pages/CreateGroupPage.tsx`, `JoinGroupPage.tsx`, `GroupSettingsPage.tsx`: full forms
+- Create, join, settings, members, regenerate-invite APIs + frontend pages
 
 ### Phase 4 — Markets ✅
-- `api/markets/create.ts`: all validations (self-target, membership, future start, end > start)
-- `api/markets/index.ts`: list with status filter, lazy `pending_resolution` transition, secret word redaction
-- `api/markets/[id].ts`: detail with bets, redaction, lazy status transition
-- `api/markets/resolve.ts`: parimutuel payout calculation, winner crediting via `increment_balance` RPC
-- `api/markets/cancel.ts`: refund all bets via `increment_balance` RPC
-- `src/pages/CreateMarketPage.tsx`, `MarketDetailPage.tsx`, `ResolveMarketPage.tsx`: full UIs
+- Create, list (with status filter + lazy transitions), detail, resolve, cancel APIs + frontend pages
 
 ### Phase 5 — Betting ✅
-- `api/bets/place.ts`: validation, atomic `place_bet` RPC with fallback, returns bet + newBalance + updatedMarket
-- MarketDetailPage: YES/NO buttons, amount input, payout preview, probability bar, target user warning
+- Atomic `place_bet` RPC with fallback, YES/NO UI, payout preview
 
 ### Phase 6 — Token Economy ✅
-- `api/cron/distribute.ts`: CRON_SECRET auth, ISO week idempotency, per-group distribution day
+- Cron-based weekly distribution, idempotent per ISO week
 
 ### Phase 7 — Leaderboard & Stats ✅
-- `api/leaderboard.ts`: P/L ranking, win rate calculation
-- `api/users/profile.ts`: user record, memberships, bet history with redaction, aggregate stats
-- `src/pages/LeaderboardPage.tsx`, `ProfilePage.tsx`: full UIs
+- P/L ranking, win rate, profile with bet history
 
 ### Phase 8 — Frontend Design System ✅
-- Design tokens in `src/index.css` using Tailwind v4 `@theme`
-- CSS animations: fadeRise, confirmPulse, tick, probability-fill transition
-- `src/components/AppLayout.tsx`: nav with links + UserButton
-- All pages use consistent design: bg-surface cards, border-border, accent colors, font-mono for numbers
+- Design tokens in `src/index.css`, CSS animations, consistent dark theme
+
+### Phase 8.1 — Reusable UI Component Library ✅
+- Extracted 9 shared components to `src/components/ui/`:
+  - `Button` (primary/danger/ghost variants, sm/md/lg sizes, renders as `<button>` or `<Link>`)
+  - `Card` (rounded surface container with optional animation and padding sizes)
+  - `FormField` (label + input/select with consistent styling, supports mono font)
+  - `StatusBadge` (pill badge with auto-mapped colors for market statuses and bet sides)
+  - `Avatar` (image with initial-letter fallback, sm/md/lg sizes)
+  - `LoadingState` (centered loading text with customizable message)
+  - `PageHeader` (h1 with tight tracking + optional right-side actions)
+  - `TokenAmount` (mono-font amber token display)
+  - `ProbabilityBar` (animated YES/NO fill bar with percentage labels)
+- Barrel export via `src/components/ui/index.ts`
+- All 10 existing pages updated to use shared components (reduced ~40% duplicated markup)
+- 45 unit tests across 8 test files (all passing)
+
+### Phase 8.2 — GroupDetailPage (Markets Browser) ✅
+- **Problem:** No way to browse markets in a group. Users could create markets but had no list view.
+- **Fix:** Created `GroupDetailPage` at `/group/:groupId` with:
+  - Group header with action links (New Market, Leaderboard, Settings — admin-conditional)
+  - Status filter tabs (All, Active, Pending, Resolved Yes/No, Cancelled)
+  - Market cards with target name, secret word (or REDACTED), probability bar, pool total, creator, end date
+  - Click-through to market detail page
+- Dashboard group cards now link to GroupDetailPage as the primary navigation target
+
+### Phase 8.3 — Mobile Responsive Nav ✅
+- Hamburger menu icon (SVG) visible on small screens (`sm:hidden`)
+- Desktop nav hidden on mobile, mobile menu slides in with nav links + UserButton
+- Menu auto-closes on link click
 
 ### Phase 9 — Hardening (Partial) ✅
-- Error boundary wrapping the entire app (`src/components/ErrorBoundary.tsx`)
-- 401 response interception in `useApiClient()` → auto sign-out + redirect to `/sign-in`
+- Error boundary wrapping the entire app
+- 401 response interception → auto sign-out + redirect
+
+### Testing Infrastructure ✅
+- Vitest configured with jsdom environment in `vite.config.ts`
+- `@testing-library/react` + `@testing-library/jest-dom` installed
+- Test setup with cleanup in `src/test/setup.ts`
+- 45 tests for all UI components (8 test files, all passing)
 
 ### Bug Fix: Group Context Routing ✅
-- **Problem:** Multiple pages (GroupSettingsPage, CreateMarketPage, LeaderboardPage) lacked group context. Settings and regenerate-invite APIs assumed one group per admin (`.single()` lookup by `admin_user_id`). CreateMarketPage used `memberships?.[0]` to pick the first group. LeaderboardPage called `/leaderboard` with no groupId. Dashboard group cards had no navigation links.
-- **Fix:** Added `:groupId` to routes (`/group/:groupId/settings`, `/group/:groupId/markets/new`, `/group/:groupId/leaderboard`). Created `api/groups/[id].ts` for group detail + member list accessible to any group member. Fixed `settings.ts` and `regenerate-invite.ts` to accept `groupId` param. Updated all frontend pages to use `useParams()`. Dashboard group cards now link to group-scoped pages (New Market, Leaderboard, Settings). Removed global Leaderboard from nav (now group-scoped).
+- All group-scoped pages use `:groupId` URL param with proper API calls
 
 ---
 
@@ -87,13 +91,14 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Run `supabase db push` against the target Supabase project
 - Verify all tables, indexes, RLS policies, and RPC functions exist
 
-### Phase 8 — Refinements
-- Extract reusable components (`<Button>`, `<Card>`, `<StatusBadge>`, `<ProbabilityBar>`, `<TokenAmount>`, `<Countdown>`, `<Avatar>`, `<Toast>`)
-- Mobile responsive nav (hamburger/bottom tab bar)
-
-### Phase 9 — Hardening
-- Input validation (consider zod)
+### Phase 9 — Hardening (continued)
+- Input validation (consider zod) on frontend forms and API endpoints
 - Environment variable validation on serverless startup
+
+### Future Enhancements
+- Toast notifications for bet confirmations and resolutions (spec 07)
+- Countdown timer component with urgent pulse animation (spec 07)
+- Market card glow effects: green (active), amber (pending resolution) (spec 07)
 
 ---
 
@@ -106,3 +111,5 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Race condition protection:** `place_bet` RPC uses `SELECT ... FOR UPDATE` on `group_members`
 - **Lazy status transitions:** `GET /api/markets` and `GET /api/markets/[id]` auto-transition active markets past `window_end` to `pending_resolution`
 - **Group context routing:** All group-scoped pages use `:groupId` URL param. `api/groups/[id].ts` returns group detail + members for any group member. Settings/regenerate-invite APIs require explicit `groupId` param.
+- **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead.
+- **Test setup:** Vitest + jsdom + @testing-library/react. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.

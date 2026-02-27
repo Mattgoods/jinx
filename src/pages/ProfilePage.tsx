@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApiClient } from '../lib/api.ts'
+import { Card, Avatar, StatusBadge, TokenAmount, LoadingState } from '../components/ui'
 
 interface Profile {
   user: { id: string; display_name: string; avatar_url: string | null }
@@ -29,42 +30,34 @@ export function ProfilePage() {
   }, [api])
 
   if (loading || !profile) {
-    return <div className="text-text-secondary">Loading...</div>
+    return <LoadingState />
   }
 
   return (
     <div className="mx-auto max-w-2xl py-6">
       <div className="mb-6 flex items-center gap-4">
-        {profile.user.avatar_url ? (
-          <img src={profile.user.avatar_url} alt="" className="h-16 w-16 rounded-full" />
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-hover text-2xl text-text-secondary">
-            {profile.user.display_name.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
-            {profile.user.display_name}
-          </h1>
-        </div>
+        <Avatar src={profile.user.avatar_url} name={profile.user.display_name} size="lg" />
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
+          {profile.user.display_name}
+        </h1>
       </div>
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border bg-bg-surface p-4 text-center">
+        <Card className="text-center">
           <p className={`font-mono text-xl font-bold ${profile.stats.lifetimePL >= 0 ? 'text-accent-green' : 'text-accent-red'}`}>
             {profile.stats.lifetimePL >= 0 ? '+' : ''}{profile.stats.lifetimePL}
           </p>
           <p className="text-sm text-text-secondary">Lifetime P/L</p>
-        </div>
-        <div className="rounded-xl border border-border bg-bg-surface p-4 text-center">
+        </Card>
+        <Card className="text-center">
           <p className="font-mono text-xl font-bold text-text-primary">{profile.stats.totalBets}</p>
           <p className="text-sm text-text-secondary">Total Bets</p>
-        </div>
-        <div className="rounded-xl border border-border bg-bg-surface p-4 text-center">
+        </Card>
+        <Card className="text-center">
           <p className="font-mono text-xl font-bold text-text-primary">{(profile.stats.winRate * 100).toFixed(0)}%</p>
           <p className="text-sm text-text-secondary">Win Rate</p>
-        </div>
+        </Card>
       </div>
 
       {/* Balances */}
@@ -74,7 +67,7 @@ export function ProfilePage() {
           {profile.memberships.map((m) => (
             <div key={m.group_id} className="flex items-center justify-between rounded-lg border border-border bg-bg-surface px-4 py-3">
               <span className="text-text-primary">{m.group_name}</span>
-              <span className="font-mono font-semibold text-accent-amber">{m.token_balance}</span>
+              <TokenAmount amount={m.token_balance} />
             </div>
           ))}
         </div>
@@ -94,14 +87,10 @@ export function ProfilePage() {
                   <span className="ml-2 text-sm text-text-secondary">
                     {bet.secret_word || 'REDACTED'}
                   </span>
-                  <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    bet.side === 'yes' ? 'bg-accent-green/15 text-accent-green' : 'bg-accent-red/15 text-accent-red'
-                  }`}>
-                    {bet.side.toUpperCase()}
-                  </span>
+                  <StatusBadge status={bet.side} className="ml-2" />
                 </div>
                 <div className="text-right">
-                  <span className="font-mono text-sm text-text-primary">{bet.amount}</span>
+                  <TokenAmount amount={bet.amount} className="text-sm" />
                   {bet.payout !== null && (
                     <span className={`ml-2 font-mono text-sm ${
                       bet.payout - bet.amount >= 0 ? 'text-accent-green' : 'text-accent-red'

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { Button, Card, FormField, Avatar, LoadingState, PageHeader } from '../components/ui'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -91,73 +92,51 @@ export function GroupSettingsPage() {
   }
 
   if (!settings) {
-    return <div className="text-text-secondary">Loading...</div>
+    return <LoadingState />
   }
 
   return (
     <div className="mx-auto max-w-lg py-6">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
-        Group Settings
-      </h1>
+      <PageHeader title="Group Settings" />
 
       <form onSubmit={handleSave} className="mb-8 space-y-4">
-        <div>
-          <label htmlFor="group-name" className="mb-1 block text-sm font-medium text-text-secondary">Group Name</label>
-          <input
-            id="group-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-border bg-bg-surface px-4 py-2 text-text-primary focus:border-accent-green focus:outline-none"
-          />
-        </div>
-        <div>
-          <label htmlFor="weekly-tokens" className="mb-1 block text-sm font-medium text-text-secondary">Weekly Token Amount</label>
-          <input
-            id="weekly-tokens"
-            type="number"
-            min="1"
-            value={weeklyTokenAmount}
-            onChange={(e) => setWeeklyTokenAmount(Number(e.target.value))}
-            className="w-full rounded-lg border border-border bg-bg-surface px-4 py-2 font-mono text-text-primary focus:border-accent-green focus:outline-none"
-          />
-        </div>
-        <div>
-          <label htmlFor="distribution-day" className="mb-1 block text-sm font-medium text-text-secondary">Distribution Day</label>
-          <select
-            id="distribution-day"
-            value={distributionDay}
-            onChange={(e) => setDistributionDay(Number(e.target.value))}
-            className="w-full rounded-lg border border-border bg-bg-surface px-4 py-2 text-text-primary focus:border-accent-green focus:outline-none"
-          >
-            {DAYS.map((day, i) => (
-              <option key={i} value={i}>{day}</option>
-            ))}
-          </select>
-        </div>
+        <FormField
+          label="Group Name"
+          id="group-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <FormField
+          label="Weekly Token Amount"
+          id="weekly-tokens"
+          type="number"
+          min={1}
+          value={weeklyTokenAmount}
+          onChange={(e) => setWeeklyTokenAmount(Number(e.target.value))}
+          mono
+        />
+        <FormField as="select" label="Distribution Day" id="distribution-day" value={distributionDay} onChange={(e) => setDistributionDay(Number(e.target.value))}>
+          {DAYS.map((day, i) => (
+            <option key={i} value={i}>{day}</option>
+          ))}
+        </FormField>
         {error && <p className="text-sm text-accent-red">{error}</p>}
         {success && <p className="text-sm text-accent-green">{success}</p>}
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full rounded-lg bg-accent-green px-4 py-2 font-semibold text-white transition-colors hover:bg-accent-green/90 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={saving} className="w-full">
           {saving ? 'Saving...' : 'Save Settings'}
-        </button>
+        </Button>
       </form>
 
-      <div className="mb-8 rounded-xl border border-border bg-bg-surface p-5">
+      <Card className="mb-8">
         <h3 className="mb-2 text-sm font-medium text-text-secondary">Invite Code</h3>
         <div className="flex items-center gap-3">
           <span className="font-mono text-lg font-semibold text-accent-amber">{settings.invite_code}</span>
-          <button
-            onClick={handleRegenerateInvite}
-            className="rounded-lg border border-border px-3 py-1 text-sm text-text-secondary transition-colors hover:bg-bg-hover"
-          >
+          <Button variant="ghost" size="sm" onClick={handleRegenerateInvite}>
             Regenerate
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <div>
         <h3 className="mb-3 text-sm font-medium text-text-secondary">Members ({settings.members.length})</h3>
@@ -165,13 +144,7 @@ export function GroupSettingsPage() {
           {settings.members.map((member) => (
             <div key={member.user_id} className="flex items-center justify-between rounded-lg border border-border bg-bg-surface px-4 py-3">
               <div className="flex items-center gap-3">
-                {member.avatar_url ? (
-                  <img src={member.avatar_url} alt="" className="h-8 w-8 rounded-full" />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-hover text-sm text-text-secondary">
-                    {member.display_name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <Avatar src={member.avatar_url} name={member.display_name} size="sm" />
                 <span className="text-text-primary">{member.display_name}</span>
               </div>
               <button

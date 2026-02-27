@@ -13,6 +13,7 @@ import { MarketDetailPage } from './pages/MarketDetailPage.tsx'
 import { ResolveMarketPage } from './pages/ResolveMarketPage.tsx'
 import { LeaderboardPage } from './pages/LeaderboardPage.tsx'
 import { ProfilePage } from './pages/ProfilePage.tsx'
+import { GroupDetailPage } from './pages/GroupDetailPage.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 export function App() {
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/group/create" element={<CreateGroupPage />} />
           <Route path="/group/join" element={<JoinGroupPage />} />
+          <Route path="/group/:groupId" element={<GroupDetailPage />} />
           <Route path="/group/:groupId/settings" element={<GroupSettingsPage />} />
           <Route path="/group/:groupId/markets/new" element={<CreateMarketPage />} />
           <Route path="/group/:groupId/leaderboard" element={<LeaderboardPage />} />

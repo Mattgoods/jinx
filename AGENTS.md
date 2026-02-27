@@ -15,11 +15,12 @@ Run these after implementing to get immediate feedback:
 - Typecheck (no emit): `npx tsc --noEmit` only checks `src/`, use `tsc -b` for full check including `api/`
 - Lint: `npx eslint .` (config in `eslint.config.js`, covers `**/*.{ts,tsx}`)
 - Build: `npm run build` (runs `tsc -b && vite build`)
-- Tests: `npx vitest run` (no tests yet)
+- Tests: `npx vitest run` (45 tests for UI components)
 
 ## Project Structure
 
 - `src/` — React frontend (pages, components, hooks, lib)
+- `src/components/ui/` — Shared UI component library (Button, Card, FormField, StatusBadge, Avatar, etc.)
 - `api/` — Vercel serverless functions (each file = endpoint)
 - `api/_lib/` — Shared server utilities (auth, supabase client)
 - `src/lib/` — Shared frontend utilities and helpers
@@ -41,3 +42,6 @@ Run these after implementing to get immediate feedback:
 - Three tsconfig files: `tsconfig.app.json` (src/), `tsconfig.node.json` (vite.config), `tsconfig.api.json` (api/)
 - `tsc -b` builds all three; `tsc --noEmit` alone only checks the files in `tsconfig.app.json` include
 - Supabase RPC functions (`place_bet`, `increment_balance`) are defined in the migration SQL and called via `supabase.rpc()`
+- ESLint strict no-unused-vars: cannot use `_` prefix for destructured-away props; use object key filtering instead
+- Vitest configured in `vite.config.ts` with `jsdom` environment, setup file at `src/test/setup.ts`
+- `react-hooks/set-state-in-effect` lint rule: avoid calling setState synchronously in useEffect; use event handlers or `.then()` callbacks

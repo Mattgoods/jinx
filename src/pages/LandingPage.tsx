@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import { Navigate } from 'react-router-dom'
+import { Button } from '../components/ui'
 
 export function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth()
@@ -18,18 +18,8 @@ export function LandingPage() {
         A social prediction market where friends bet fake currency on whether someone will say a specific word.
       </p>
       <div className="flex gap-4">
-        <Link
-          to="/sign-in"
-          className="rounded-lg bg-accent-green px-6 py-3 font-semibold text-white transition-colors hover:bg-accent-green/90"
-        >
-          Sign In
-        </Link>
-        <Link
-          to="/sign-up"
-          className="rounded-lg border border-border bg-transparent px-6 py-3 font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
-        >
-          Sign Up
-        </Link>
+        <Button as="link" to="/sign-in" size="lg">Sign In</Button>
+        <Button as="link" to="/sign-up" variant="ghost" size="lg">Sign Up</Button>
       </div>
     </div>
   )

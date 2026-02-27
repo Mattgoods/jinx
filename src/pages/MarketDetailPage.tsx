@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState } from '../components/ui'
 
 interface Market {
   id: string
@@ -72,14 +73,12 @@ export function MarketDetailPage() {
   }
 
   if (!market) {
-    return <div className="text-text-secondary">Loading...</div>
+    return <LoadingState />
   }
 
-  const yesPercent = market.total_pool > 0 ? (market.yes_pool / market.total_pool) * 100 : 50
   const isActive = market.status === 'active'
   const canBet = isActive && !isTarget && new Date(market.window_end) > new Date()
 
-  // Payout preview
   const sidePool = betSide === 'yes' ? market.yes_pool : market.no_pool
   const previewPayout = canBet
     ? Math.floor((betAmount / (sidePool + betAmount)) * (market.total_pool + betAmount))
@@ -87,7 +86,7 @@ export function MarketDetailPage() {
 
   return (
     <div className="mx-auto max-w-2xl py-6">
-      <div className="mb-6 rounded-xl border border-border bg-bg-surface p-6">
+      <Card padding="lg" className="mb-6">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <p className="text-sm text-text-secondary">
@@ -97,34 +96,19 @@ export function MarketDetailPage() {
               {market.secret_word || 'REDACTED'}
             </h2>
           </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-            market.status === 'active' ? 'bg-accent-green/15 text-accent-green' :
-            market.status === 'pending_resolution' ? 'bg-accent-amber/15 text-accent-amber' :
-            market.status === 'resolved_yes' ? 'bg-accent-green/15 text-accent-green' :
-            market.status === 'resolved_no' ? 'bg-accent-red/15 text-accent-red' :
-            'bg-border text-text-tertiary'
-          }`}>
-            {market.status.replace('_', ' ')}
-          </span>
+          <StatusBadge status={market.status} />
         </div>
 
-        {/* Probability bar */}
         <div className="mb-4">
-          <div className="mb-1 flex justify-between text-sm">
-            <span className="font-mono font-medium text-accent-green">YES {yesPercent.toFixed(0)}%</span>
-            <span className="font-mono font-medium text-accent-red">NO {(100 - yesPercent).toFixed(0)}%</span>
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-accent-red/20">
-            <div className="probability-fill h-full rounded-full bg-accent-green" style={{ width: `${yesPercent}%` }} />
-          </div>
+          <ProbabilityBar yesPool={market.yes_pool} totalPool={market.total_pool} />
         </div>
 
         <div className="flex gap-4 text-sm text-text-secondary">
-          <span>Pool: <span className="font-mono font-semibold text-accent-amber">{market.total_pool}</span></span>
+          <span>Pool: <TokenAmount amount={market.total_pool} /></span>
           <span>Created by: {market.creator_display_name}</span>
         </div>
 
-        {market.status === 'active' && (
+        {(market.status === 'active' || market.status === 'pending_resolution') && (
           <Link
             to={`/markets/${market.id}/resolve`}
             className="mt-4 inline-block text-sm text-text-tertiary hover:text-text-secondary"
@@ -132,11 +116,10 @@ export function MarketDetailPage() {
             Resolve market
           </Link>
         )}
-      </div>
+      </Card>
 
-      {/* Bet panel */}
       {canBet && (
-        <div className="mb-6 rounded-xl border border-border bg-bg-surface p-6">
+        <Card padding="lg" className="mb-6">
           <h3 className="mb-4 text-lg font-semibold text-text-primary">Place Bet</h3>
           <div className="mb-4 flex gap-2">
             <button
@@ -172,17 +155,13 @@ export function MarketDetailPage() {
             />
           </div>
           <p className="mb-4 text-sm text-text-secondary">
-            Potential payout: <span className="font-mono font-semibold text-accent-amber">{previewPayout}</span> tokens
+            Potential payout: <TokenAmount amount={previewPayout} /> tokens
           </p>
           {error && <p className="mb-4 text-sm text-accent-red">{error}</p>}
-          <button
-            onClick={handlePlaceBet}
-            disabled={placing || betAmount < 1}
-            className="w-full rounded-lg bg-accent-green px-4 py-2 font-semibold text-white transition-colors hover:bg-accent-green/90 disabled:opacity-50"
-          >
+          <Button onClick={handlePlaceBet} disabled={placing || betAmount < 1} className="w-full">
             {placing ? 'Placing...' : `Place ${betSide.toUpperCase()} bet`}
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
 
       {isTarget && isActive && (
@@ -191,7 +170,6 @@ export function MarketDetailPage() {
         </div>
       )}
 
-      {/* Bet list */}
       <div>
         <h3 className="mb-3 text-lg font-semibold text-text-primary">Bets ({bets.length})</h3>
         {bets.length === 0 ? (
@@ -202,13 +180,9 @@ export function MarketDetailPage() {
               <div key={bet.id} className="flex items-center justify-between rounded-lg border border-border bg-bg-surface px-4 py-3">
                 <div>
                   <span className="text-text-primary">{bet.display_name}</span>
-                  <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    bet.side === 'yes' ? 'bg-accent-green/15 text-accent-green' : 'bg-accent-red/15 text-accent-red'
-                  }`}>
-                    {bet.side.toUpperCase()}
-                  </span>
+                  <StatusBadge status={bet.side} className="ml-2" />
                 </div>
-                <span className="font-mono text-sm text-accent-amber">{bet.amount}</span>
+                <TokenAmount amount={bet.amount} className="text-sm" />
               </div>
             ))}
           </div>

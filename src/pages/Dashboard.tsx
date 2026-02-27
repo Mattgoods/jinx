@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { Button, Card, TokenAmount, LoadingState, PageHeader } from '../components/ui'
 
 interface Group {
   group_id: string
@@ -23,7 +24,7 @@ export function Dashboard() {
   }, [api])
 
   if (loading) {
-    return <div className="text-text-secondary">Loading...</div>
+    return <LoadingState />
   }
 
   if (groups.length === 0) {
@@ -36,18 +37,8 @@ export function Dashboard() {
           Create or join a group to start playing.
         </p>
         <div className="flex gap-4">
-          <Link
-            to="/group/create"
-            className="rounded-lg bg-accent-green px-6 py-3 font-semibold text-white transition-colors hover:bg-accent-green/90"
-          >
-            Create Group
-          </Link>
-          <Link
-            to="/group/join"
-            className="rounded-lg border border-border bg-transparent px-6 py-3 font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
-          >
-            Join Group
-          </Link>
+          <Button as="link" to="/group/create" size="lg">Create Group</Button>
+          <Button as="link" to="/group/join" variant="ghost" size="lg">Join Group</Button>
         </div>
       </div>
     )
@@ -55,56 +46,33 @@ export function Dashboard() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
-          Dashboard
-        </h1>
+      <PageHeader title="Dashboard">
         <div className="flex gap-3">
-          <Link
-            to="/group/create"
-            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
-          >
-            Create Group
-          </Link>
-          <Link
-            to="/group/join"
-            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
-          >
-            Join Group
-          </Link>
+          <Button as="link" to="/group/create" variant="ghost" size="md">Create Group</Button>
+          <Button as="link" to="/group/join" variant="ghost" size="md">Join Group</Button>
         </div>
-      </div>
+      </PageHeader>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {groups.map((group) => (
-          <div
-            key={group.group_id}
-            className="card-enter rounded-xl border border-border bg-bg-surface p-5 transition-colors hover:bg-bg-hover"
-          >
-            <h3 className="mb-3 text-lg font-semibold text-text-primary">{group.group_name}</h3>
-            <p className="mb-4 font-mono text-sm font-semibold text-accent-amber">
-              {group.token_balance} tokens
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                to={`/group/${group.group_id}/markets/new`}
-                className="rounded-lg bg-accent-green px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-green/90"
-              >
-                New Market
-              </Link>
-              <Link
-                to={`/group/${group.group_id}/leaderboard`}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
-              >
-                Leaderboard
-              </Link>
-              <Link
-                to={`/group/${group.group_id}/settings`}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
-              >
-                Settings
-              </Link>
-            </div>
-          </div>
+          <Link key={group.group_id} to={`/group/${group.group_id}`} className="block">
+            <Card animate className="transition-colors hover:bg-bg-hover">
+              <h3 className="mb-3 text-lg font-semibold text-text-primary">{group.group_name}</h3>
+              <p className="mb-4 text-sm">
+                <TokenAmount amount={group.token_balance} /> <span className="text-text-secondary">tokens</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button as="link" to={`/group/${group.group_id}/markets/new`} size="sm" onClick={(e) => e.stopPropagation()}>
+                  New Market
+                </Button>
+                <Button as="link" to={`/group/${group.group_id}/leaderboard`} variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                  Leaderboard
+                </Button>
+                <Button as="link" to={`/group/${group.group_id}/settings`} variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                  Settings
+                </Button>
+              </div>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>

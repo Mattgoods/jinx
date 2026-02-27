@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { Card, Button, TokenAmount, LoadingState, PageHeader } from '../components/ui'
 
 interface Market {
   id: string
@@ -46,7 +47,7 @@ export function ResolveMarketPage() {
   }
 
   if (!market) {
-    return <div className="text-text-secondary">Loading...</div>
+    return <LoadingState />
   }
 
   const windowClosed = new Date(market.window_end) < new Date()
@@ -54,18 +55,16 @@ export function ResolveMarketPage() {
 
   return (
     <div className="mx-auto max-w-md py-12">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight text-text-primary" style={{ letterSpacing: '-0.02em' }}>
-        Resolve Market
-      </h1>
-      <div className="mb-6 rounded-xl border border-border bg-bg-surface p-5">
+      <PageHeader title="Resolve Market" />
+      <Card className="mb-6">
         <p className="text-sm text-text-secondary">
           Did <span className="font-semibold text-text-primary">{market.target_display_name}</span> say...
         </p>
         <p className="mt-1 text-xl font-bold text-text-primary">"{market.secret_word}"</p>
         <p className="mt-3 text-sm text-text-secondary">
-          Pool: <span className="font-mono font-semibold text-accent-amber">{market.total_pool}</span> tokens
+          Pool: <TokenAmount amount={market.total_pool} /> tokens
         </p>
-      </div>
+      </Card>
 
       {!windowClosed && (
         <p className="mb-4 text-sm text-accent-amber">
@@ -76,20 +75,12 @@ export function ResolveMarketPage() {
       {error && <p className="mb-4 text-sm text-accent-red">{error}</p>}
 
       <div className="flex gap-3">
-        <button
-          onClick={() => handleResolve('yes')}
-          disabled={!canResolve || resolving}
-          className="flex-1 rounded-lg bg-accent-green px-4 py-3 font-semibold text-white transition-colors hover:bg-accent-green/90 disabled:opacity-50"
-        >
+        <Button onClick={() => handleResolve('yes')} disabled={!canResolve || resolving} className="flex-1" size="lg">
           Yes, they said it
-        </button>
-        <button
-          onClick={() => handleResolve('no')}
-          disabled={!canResolve || resolving}
-          className="flex-1 rounded-lg bg-accent-red px-4 py-3 font-semibold text-white transition-colors hover:bg-accent-red/90 disabled:opacity-50"
-        >
+        </Button>
+        <Button onClick={() => handleResolve('no')} disabled={!canResolve || resolving} variant="danger" className="flex-1" size="lg">
           No, they didn't
-        </button>
+        </Button>
       </div>
     </div>
   )
