@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Button, FormField, PageHeader } from '../components/ui'
+import { Button, FormField, PageHeader, useToast } from '../components/ui'
 
 export function JoinGroupPage() {
   const api = useApiClient()
   const navigate = useNavigate()
+  const { addToast } = useToast()
   const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -20,6 +21,7 @@ export function JoinGroupPage() {
         method: 'POST',
         body: JSON.stringify({ inviteCode: inviteCode.trim() }),
       })
+      addToast('Joined group!')
       navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join group')

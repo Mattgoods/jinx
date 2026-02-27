@@ -78,10 +78,30 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Vitest configured with jsdom environment in `vite.config.ts`
 - `@testing-library/react` + `@testing-library/jest-dom` installed
 - Test setup with cleanup in `src/test/setup.ts`
-- 45 tests for all UI components (8 test files, all passing)
+- 55 tests for all UI components (9 test files, all passing)
 
 ### Bug Fix: Group Context Routing ✅
 - All group-scoped pages use `:groupId` URL param with proper API calls
+
+### Phase 10 — Toast Notifications ✅
+- **Problem:** No visual feedback for user actions like bet placement, market creation/resolution, group creation/joining.
+- **Fix:** Built a custom toast notification system with no external dependencies:
+  - `ToastProvider` context wrapping the app, rendering toasts in a fixed bottom-right container
+  - `useToast` hook returning `addToast(message, variant?)` for triggering toasts
+  - Three variants: `success` (green), `error` (red), `info` (amber) matching the design system
+  - Auto-dismiss after 4 seconds with slide-out exit animation
+  - Manual dismiss via close button
+  - Stacks multiple toasts vertically
+  - Slide-in/slide-out CSS animations (`toastSlideIn`, `toastSlideOut` in `index.css`)
+  - Split into `Toast.tsx` (component), `ToastContext.ts` (context), `useToast.ts` (hook) to satisfy react-refresh lint rule
+- **Integrated into 7 pages:**
+  - `MarketDetailPage` — bet placement confirmation
+  - `CreateMarketPage` — market created
+  - `ResolveMarketPage` — market resolved as YES/NO
+  - `CreateGroupPage` — group created
+  - `JoinGroupPage` — group joined
+  - `GroupSettingsPage` — settings saved, invite code regenerated, member removed
+- 10 unit tests covering rendering, variants, auto-dismiss, manual dismiss, error boundary, and positioning
 
 ---
 
@@ -96,7 +116,6 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Environment variable validation on serverless startup
 
 ### Future Enhancements
-- Toast notifications for bet confirmations and resolutions (spec 07)
 - Countdown timer component with urgent pulse animation (spec 07)
 - Market card glow effects: green (active), amber (pending resolution) (spec 07)
 
@@ -112,4 +131,5 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Lazy status transitions:** `GET /api/markets` and `GET /api/markets/[id]` auto-transition active markets past `window_end` to `pending_resolution`
 - **Group context routing:** All group-scoped pages use `:groupId` URL param. `api/groups/[id].ts` returns group detail + members for any group member. Settings/regenerate-invite APIs require explicit `groupId` param.
 - **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead.
+- **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
 - **Test setup:** Vitest + jsdom + @testing-library/react. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.

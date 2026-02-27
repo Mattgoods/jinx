@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Card, Button, TokenAmount, LoadingState, PageHeader } from '../components/ui'
+import { Card, Button, TokenAmount, LoadingState, PageHeader, useToast } from '../components/ui'
 
 interface Market {
   id: string
@@ -18,6 +18,7 @@ export function ResolveMarketPage() {
   const { id } = useParams<{ id: string }>()
   const api = useApiClient()
   const navigate = useNavigate()
+  const { addToast } = useToast()
   const [market, setMarket] = useState<Market | null>(null)
   const [error, setError] = useState('')
   const [resolving, setResolving] = useState(false)
@@ -38,6 +39,7 @@ export function ResolveMarketPage() {
         method: 'POST',
         body: JSON.stringify({ marketId: market.id, outcome }),
       })
+      addToast(`Market resolved as ${outcome.toUpperCase()}!`)
       navigate(`/markets/${market.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resolve market')

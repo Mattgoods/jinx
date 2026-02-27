@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState } from '../components/ui'
+import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState, useToast } from '../components/ui'
 
 interface Market {
   id: string
@@ -31,6 +31,7 @@ interface Bet {
 export function MarketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const api = useApiClient()
+  const { addToast } = useToast()
   const [market, setMarket] = useState<Market | null>(null)
   const [bets, setBets] = useState<Bet[]>([])
   const [betSide, setBetSide] = useState<'yes' | 'no'>('yes')
@@ -65,6 +66,7 @@ export function MarketDetailPage() {
       }) as { data: { bet: Bet; updatedMarket: Market } }
       setMarket(res.data.updatedMarket)
       setBets((prev) => [...prev, res.data.bet])
+      addToast(`Bet placed! ${betAmount} tokens on ${betSide.toUpperCase()}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to place bet')
     } finally {

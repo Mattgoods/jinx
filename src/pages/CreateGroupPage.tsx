@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Button, FormField, PageHeader } from '../components/ui'
+import { Button, FormField, PageHeader, useToast } from '../components/ui'
 
 export function CreateGroupPage() {
   const api = useApiClient()
   const navigate = useNavigate()
+  const { addToast } = useToast()
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -20,6 +21,7 @@ export function CreateGroupPage() {
         method: 'POST',
         body: JSON.stringify({ name: name.trim() }),
       })
+      addToast('Group created!')
       navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create group')

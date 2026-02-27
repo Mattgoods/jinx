@@ -15,10 +15,12 @@ import { LeaderboardPage } from './pages/LeaderboardPage.tsx'
 import { ProfilePage } from './pages/ProfilePage.tsx'
 import { GroupDetailPage } from './pages/GroupDetailPage.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
+import { ToastProvider } from './components/ui/Toast.tsx'
 
 export function App() {
   return (
     <ErrorBoundary>
+      <ToastProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/sign-in/*" element={<SignInPage />} />
@@ -36,6 +38,7 @@ export function App() {
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
+      </ToastProvider>
     </ErrorBoundary>
   )
 }

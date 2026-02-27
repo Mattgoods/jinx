@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Button, FormField, PageHeader } from '../components/ui'
+import { Button, FormField, PageHeader, useToast } from '../components/ui'
 
 interface GroupMember {
   user_id: string
@@ -12,6 +12,7 @@ export function CreateMarketPage() {
   const { groupId } = useParams<{ groupId: string }>()
   const api = useApiClient()
   const navigate = useNavigate()
+  const { addToast } = useToast()
   const [members, setMembers] = useState<GroupMember[]>([])
   const [targetUserId, setTargetUserId] = useState('')
   const [secretWord, setSecretWord] = useState('')
@@ -43,6 +44,7 @@ export function CreateMarketPage() {
           windowEnd: new Date(windowEnd).toISOString(),
         }),
       }) as { data: { market: { id: string } } }
+      addToast('Market created!')
       navigate(`/markets/${res.data.market.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create market')

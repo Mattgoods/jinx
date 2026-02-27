@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Button, Card, FormField, Avatar, LoadingState, PageHeader } from '../components/ui'
+import { Button, Card, FormField, Avatar, LoadingState, PageHeader, useToast } from '../components/ui'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -17,6 +17,7 @@ interface GroupSettings {
 export function GroupSettingsPage() {
   const { groupId } = useParams<{ groupId: string }>()
   const api = useApiClient()
+  const { addToast } = useToast()
   const [settings, setSettings] = useState<GroupSettings | null>(null)
   const [name, setName] = useState('')
   const [weeklyTokenAmount, setWeeklyTokenAmount] = useState(1000)
@@ -53,6 +54,7 @@ export function GroupSettingsPage() {
       }) as { data: { group: GroupSettings } }
       setSettings(res.data.group)
       setSuccess('Settings saved.')
+      addToast('Settings saved!')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
@@ -69,6 +71,7 @@ export function GroupSettingsPage() {
       if (settings) {
         setSettings({ ...settings, invite_code: res.data.inviteCode })
       }
+      addToast('Invite code regenerated!', 'info')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to regenerate invite code')
     }
@@ -86,6 +89,7 @@ export function GroupSettingsPage() {
           members: settings.members.filter((m) => m.user_id !== userId),
         })
       }
+      addToast('Member removed')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove member')
     }
