@@ -121,7 +121,7 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Vitest configured with jsdom environment in `vite.config.ts`
 - `@testing-library/react` + `@testing-library/jest-dom` installed
 - Test setup with cleanup in `src/test/setup.ts`
-- 55 tests for all UI components (9 test files, all passing)
+- 69 tests for all UI components (10 test files, all passing)
 
 ### Bug Fix: Group Context Routing ✅
 - All group-scoped pages use `:groupId` URL param with proper API calls
@@ -146,6 +146,20 @@ A social prediction market where friends bet fake currency on whether someone wi
   - `GroupSettingsPage` — settings saved, invite code regenerated, member removed
 - 10 unit tests covering rendering, variants, auto-dismiss, manual dismiss, error boundary, and positioning
 
+### Phase 10.1 — Countdown Timer Component ✅
+- **Problem:** Markets only showed "Ends [date]" or "Ended" text — no live countdown, no sense of urgency for active markets.
+- **Fix:** Created `CountdownTimer` component in `src/components/ui/`:
+  - Live countdown updating every second with auto-formatting: `2d 3h 15m` → `5h 30m 10s` → `45m 20s` → `30s`
+  - Uses JetBrains Mono font for scoreboard feel (per spec 07)
+  - Urgent pulse animation (`countdown-urgent` CSS class) activates when remaining time drops below threshold (default: 1 hour)
+  - Urgent state shows red text with subtle tick animation
+  - Configurable `label` prefix ("Ends in"), `expiredText` ("Ended"/"Window closed"), and `urgentThresholdMs`
+  - Transitions cleanly to expired text when timer reaches zero
+- **Integrated into 2 pages:**
+  - `MarketDetailPage` — shows live countdown next to pool and creator info for active/pending markets
+  - `GroupDetailPage` — replaces static date display on market cards with live countdown
+- 14 unit tests covering time formatting (days/hours/minutes/seconds), urgent threshold, label display, custom expired text, live tick updates, and transition to expired state
+
 ---
 
 ## Remaining Work
@@ -155,7 +169,6 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Verify all tables, indexes, RLS policies, and RPC functions exist
 
 ### Future Enhancements
-- Countdown timer component with urgent pulse animation (spec 07)
 - Market card glow effects: green (active), amber (pending resolution) (spec 07)
 
 ---
@@ -170,6 +183,7 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Lazy status transitions:** `GET /api/markets` and `GET /api/markets/[id]` auto-transition active markets past `window_end` to `pending_resolution`
 - **Group context routing:** All group-scoped pages use `:groupId` URL param. `api/groups/[id].ts` returns group detail + members for any group member. Settings/regenerate-invite APIs require explicit `groupId` param.
 - **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead.
+- **Countdown timer:** `CountdownTimer` component accepts `targetDate` (ISO string), auto-updates every second. Applies `countdown-urgent` CSS class when remaining time < `urgentThresholdMs` (default 1h). Uses JetBrains Mono. Exported from barrel `src/components/ui/index.ts`.
 - **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
 - **Test setup:** Vitest + jsdom + @testing-library/react. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.

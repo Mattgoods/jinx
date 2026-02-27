@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
-import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState, PageHeader } from '../components/ui'
+import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState, PageHeader, CountdownTimer } from '../components/ui'
 
 interface Market {
   id: string
@@ -138,12 +138,14 @@ export function GroupDetailPage() {
                   <StatusBadge status={market.status} />
                 </div>
                 <ProbabilityBar yesPool={market.yes_pool} totalPool={market.total_pool} />
-                <div className="mt-3 flex gap-4 text-sm text-text-secondary">
+                <div className="mt-3 flex flex-wrap gap-4 text-sm text-text-secondary">
                   <span>Pool: <TokenAmount amount={market.total_pool} /></span>
                   <span>By: {market.creator_display_name}</span>
-                  <span className="text-text-tertiary">
-                    {new Date(market.window_end) < new Date() ? 'Ended' : `Ends ${new Date(market.window_end).toLocaleDateString()}`}
-                  </span>
+                  <CountdownTimer
+                    targetDate={market.window_end}
+                    label={market.status === 'active' ? 'Ends in' : undefined}
+                    expiredText="Ended"
+                  />
                 </div>
               </Card>
             </Link>

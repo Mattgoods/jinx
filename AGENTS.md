@@ -15,7 +15,7 @@ Run these after implementing to get immediate feedback:
 - Typecheck (no emit): `npx tsc --noEmit` only checks `src/`, use `tsc -b` for full check including `api/`
 - Lint: `npx eslint .` (config in `eslint.config.js`, covers `**/*.{ts,tsx}`)
 - Build: `npm run build` (runs `tsc -b && vite build`)
-- Tests: `npx vitest run` (45 tests for UI components)
+- Tests: `npx vitest run` (69 tests for UI components)
 
 ## Project Structure
 
@@ -53,4 +53,4 @@ Run these after implementing to get immediate feedback:
 - **No `.ts` extensions in API imports:** Vercel compiles each serverless function independently (not using project tsconfig), so `.ts` import extensions cause TS5097 errors. Always use extensionless imports in `api/` files.
 - **Hobby plan limit:** Max 12 serverless functions. Consolidated endpoints use `api/groups/manage.ts` (dispatches create/join/members/regenerate-invite via `?action=` query param) and `api/users/index.ts` (dispatches profile/sync via `?action=` query param). Old paths are mapped via Vercel rewrites in `vercel.json`.
 - **Function count:** Only `.ts` files directly in `api/` subfolders count as functions; `api/_lib/` is excluded (underscore prefix). Currently at exactly 12 functions.
-- **Tests:** 55 tests across 9 test files (run `npx vitest run`)
+- **Tests:** 69 tests across 10 test files (run `npx vitest run`)

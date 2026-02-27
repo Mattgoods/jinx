@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
 import { validateAmount } from '../lib/validation.ts'
-import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState, useToast } from '../components/ui'
+import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState, CountdownTimer, useToast } from '../components/ui'
 
 interface Market {
   id: string
@@ -113,9 +113,16 @@ export function MarketDetailPage() {
           <ProbabilityBar yesPool={market.yes_pool} totalPool={market.total_pool} />
         </div>
 
-        <div className="flex gap-4 text-sm text-text-secondary">
+        <div className="flex flex-wrap gap-4 text-sm text-text-secondary">
           <span>Pool: <TokenAmount amount={market.total_pool} /></span>
           <span>Created by: {market.creator_display_name}</span>
+          {(market.status === 'active' || market.status === 'pending_resolution') && (
+            <CountdownTimer
+              targetDate={market.window_end}
+              label={market.status === 'active' ? 'Ends in' : undefined}
+              expiredText="Window closed"
+            />
+          )}
         </div>
 
         {(market.status === 'active' || market.status === 'pending_resolution') && (
