@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { validateRequired } from '../lib/validation.ts'
 import { Button, FormField, PageHeader, useToast } from '../components/ui'
 
 export function CreateGroupPage() {
@@ -9,11 +10,17 @@ export function CreateGroupPage() {
   const { addToast } = useToast()
   const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [nameError, setNameError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) return
+    const validationError = validateRequired(name, 'Group name', 100)
+    if (validationError) {
+      setNameError(validationError)
+      return
+    }
+    setNameError('')
     setSubmitting(true)
     setError('')
     try {
@@ -41,6 +48,8 @@ export function CreateGroupPage() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="My Prediction Group"
+          maxLength={100}
+          error={nameError}
           required
         />
         {error && <p className="text-sm text-accent-red">{error}</p>}

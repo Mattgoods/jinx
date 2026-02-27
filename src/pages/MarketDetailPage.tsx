@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { validateAmount } from '../lib/validation.ts'
 import { Card, Button, StatusBadge, TokenAmount, ProbabilityBar, LoadingState, useToast } from '../components/ui'
 
 interface Market {
@@ -37,6 +38,7 @@ export function MarketDetailPage() {
   const [betSide, setBetSide] = useState<'yes' | 'no'>('yes')
   const [betAmount, setBetAmount] = useState(10)
   const [error, setError] = useState('')
+  const [betError, setBetError] = useState('')
   const [placing, setPlacing] = useState(false)
   const [isTarget, setIsTarget] = useState(false)
 
@@ -53,6 +55,12 @@ export function MarketDetailPage() {
 
   async function handlePlaceBet() {
     if (!market) return
+    const amountError = validateAmount(betAmount, 'Bet amount')
+    if (amountError) {
+      setBetError(amountError)
+      return
+    }
+    setBetError('')
     setPlacing(true)
     setError('')
     try {
@@ -155,6 +163,7 @@ export function MarketDetailPage() {
               onChange={(e) => setBetAmount(Number(e.target.value))}
               className="w-full rounded-lg border border-border bg-bg-primary px-4 py-2 font-mono text-text-primary focus:border-accent-green focus:outline-none"
             />
+            {betError && <p className="mt-1 text-sm text-accent-red">{betError}</p>}
           </div>
           <p className="mb-4 text-sm text-text-secondary">
             Potential payout: <TokenAmount amount={previewPayout} /> tokens

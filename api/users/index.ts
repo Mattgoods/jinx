@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyToken } from '@clerk/backend'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { validateString } from '../_lib/validation'
 
 async function handleProfile(req: VercelRequest, res: VercelResponse) {
   const auth = await verifyAuth(req)
@@ -93,13 +94,25 @@ async function handleSync(req: VercelRequest, res: VercelResponse) {
   const clerkId = payload.sub
   const { displayName, avatarUrl } = req.body
 
+  // Validate displayName if provided
+  const safeName = typeof displayName === 'string' && displayName.trim() ? displayName.trim().slice(0, 100) : 'Anonymous'
+
+  // Validate avatarUrl if provided
+  let safeAvatarUrl: string | null = null
+  if (avatarUrl && typeof avatarUrl === 'string') {
+    const urlError = validateString(avatarUrl, 'avatarUrl', { maxLength: 2000 })
+    if (!urlError) {
+      safeAvatarUrl = avatarUrl
+    }
+  }
+
   const { data: user, error } = await supabase
     .from('users')
     .upsert(
       {
         clerk_id: clerkId,
-        display_name: displayName || 'Anonymous',
-        avatar_url: avatarUrl || null,
+        display_name: safeName,
+        avatar_url: safeAvatarUrl,
       },
       { onConflict: 'clerk_id' },
     )

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { validateUUID, validateString, validateDate, firstError } from '../_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -11,17 +12,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const auth = await verifyAuth(req)
     const { groupId, targetUserId, secretWord, windowStart, windowEnd } = req.body
 
-    // Validations
-    if (!groupId || !targetUserId || !secretWord || !windowStart || !windowEnd) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Missing required fields' } })
+    // Validate required fields
+    const fieldError = firstError(
+      validateUUID(groupId, 'groupId'),
+      validateUUID(targetUserId, 'targetUserId'),
+      validateString(secretWord, 'secretWord', { maxLength: 50 }),
+    )
+    if (fieldError) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: fieldError } })
+    }
+
+    const startResult = validateDate(windowStart, 'windowStart')
+    if (startResult.error) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: startResult.error } })
+    }
+    const endResult = validateDate(windowEnd, 'windowEnd')
+    if (endResult.error) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: endResult.error } })
     }
 
     if (targetUserId === auth.userId) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Cannot target yourself' } })
     }
 
-    const start = new Date(windowStart)
-    const end = new Date(windowEnd)
+    // Safe: validated above
+    const start = startResult.date!
+    const end = endResult.date!
 
     if (start <= new Date()) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Window start must be in the future' } })

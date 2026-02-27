@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { isUUID, MARKET_STATUSES } from '../_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -12,8 +13,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const groupId = req.query.groupId as string
     const status = req.query.status as string | undefined
 
-    if (!groupId) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId is required' } })
+    if (!groupId || !isUUID(groupId)) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId must be a valid UUID' } })
+    }
+
+    if (status && !MARKET_STATUSES.includes(status as typeof MARKET_STATUSES[number])) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: `status must be one of: ${MARKET_STATUSES.join(', ')}` } })
     }
 
     // Verify group membership

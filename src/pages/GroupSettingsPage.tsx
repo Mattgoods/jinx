@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { validateRequired, validateAmount } from '../lib/validation.ts'
 import { Button, Card, FormField, Avatar, LoadingState, PageHeader, useToast } from '../components/ui'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -25,6 +26,7 @@ export function GroupSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     api(`/groups/settings?groupId=${groupId}`)
@@ -40,6 +42,17 @@ export function GroupSettingsPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+    const errors: Record<string, string> = {}
+
+    const nameError = validateRequired(name, 'Group name', 100)
+    if (nameError) errors.name = nameError
+
+    const tokenError = validateAmount(weeklyTokenAmount, 'Weekly token amount', 1_000_000)
+    if (tokenError) errors.weeklyTokenAmount = tokenError
+
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
     setSaving(true)
     setError('')
     setSuccess('')
@@ -110,15 +123,20 @@ export function GroupSettingsPage() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          maxLength={100}
+          error={fieldErrors.name}
+          required
         />
         <FormField
           label="Weekly Token Amount"
           id="weekly-tokens"
           type="number"
           min={1}
+          max={1000000}
           value={weeklyTokenAmount}
           onChange={(e) => setWeeklyTokenAmount(Number(e.target.value))}
           mono
+          error={fieldErrors.weeklyTokenAmount}
         />
         <FormField as="select" label="Distribution Day" id="distribution-day" value={distributionDay} onChange={(e) => setDistributionDay(Number(e.target.value))}>
           {DAYS.map((day, i) => (

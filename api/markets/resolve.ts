@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { validateUUID, validateEnum, firstError } from '../_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -11,8 +12,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const auth = await verifyAuth(req)
     const { marketId, outcome } = req.body
 
-    if (!marketId || !outcome || !['yes', 'no'].includes(outcome)) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'marketId and outcome (yes/no) are required' } })
+    const validationError = firstError(
+      validateUUID(marketId, 'marketId'),
+      validateEnum(outcome, 'outcome', ['yes', 'no'] as const),
+    )
+    if (validationError) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: validationError } })
     }
 
     // Get market

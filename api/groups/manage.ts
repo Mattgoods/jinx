@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { validateString, validateUUID, firstError } from '../_lib/validation'
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -19,8 +20,9 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
   const auth = await verifyAuth(req)
   const { name } = req.body
 
-  if (!name || typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Group name is required' } })
+  const nameError = validateString(name, 'Group name', { maxLength: 100 })
+  if (nameError) {
+    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: nameError } })
   }
 
   let inviteCode: string
@@ -78,8 +80,8 @@ async function handleJoin(req: VercelRequest, res: VercelResponse) {
   const auth = await verifyAuth(req)
   const { inviteCode } = req.body
 
-  if (!inviteCode || typeof inviteCode !== 'string') {
-    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invite code is required' } })
+  if (!inviteCode || typeof inviteCode !== 'string' || !/^[A-Za-z0-9]{1,20}$/.test(inviteCode.trim())) {
+    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invite code must be alphanumeric' } })
   }
 
   const { data: group, error: groupError } = await supabase
@@ -127,8 +129,12 @@ async function handleMembers(req: VercelRequest, res: VercelResponse) {
   const auth = await verifyAuth(req)
   const { userId, groupId } = req.body
 
-  if (!userId || !groupId) {
-    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'userId and groupId are required' } })
+  const validationError = firstError(
+    validateUUID(userId, 'userId'),
+    validateUUID(groupId, 'groupId'),
+  )
+  if (validationError) {
+    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: validationError } })
   }
 
   const { data: group } = await supabase
@@ -167,8 +173,9 @@ async function handleRegenerateInvite(req: VercelRequest, res: VercelResponse) {
   const auth = await verifyAuth(req)
 
   const { groupId } = req.body
-  if (!groupId) {
-    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId is required' } })
+  const groupIdError = validateUUID(groupId, 'groupId')
+  if (groupIdError) {
+    return res.status(400).json({ error: { code: 'BAD_REQUEST', message: groupIdError } })
   }
 
   const { data: group } = await supabase

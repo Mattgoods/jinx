@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { validateUUID, validateEnum, validatePositiveInt, firstError } from '../_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -12,12 +13,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { marketId, side, amount } = req.body
 
     // Validate input
-    if (!marketId || !side || !['yes', 'no'].includes(side)) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'marketId and side (yes/no) are required' } })
-    }
-
-    if (!Number.isInteger(amount) || amount < 1) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Amount must be a positive integer' } })
+    const validationError = firstError(
+      validateUUID(marketId, 'marketId'),
+      validateEnum(side, 'side', ['yes', 'no'] as const),
+      validatePositiveInt(amount, 'amount', { min: 1, max: 1_000_000 }),
+    )
+    if (validationError) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: validationError } })
     }
 
     // Get market

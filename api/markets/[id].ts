@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { isUUID } from '../_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -11,8 +12,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const auth = await verifyAuth(req)
     const marketId = req.query.id as string
 
-    if (!marketId) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Market ID is required' } })
+    if (!marketId || !isUUID(marketId)) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Market ID must be a valid UUID' } })
     }
 
     // Get market with creator and target names

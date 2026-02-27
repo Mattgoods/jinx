@@ -1,6 +1,10 @@
 import { verifyToken } from '@clerk/backend'
 import { supabase } from './supabase'
+import { requireEnvVars } from './validation'
 import type { VercelRequest } from '@vercel/node'
+
+// Fail fast if CLERK_SECRET_KEY is missing
+requireEnvVars('CLERK_SECRET_KEY')
 
 export interface AuthContext {
   clerkId: string

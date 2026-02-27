@@ -1,14 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from '../_lib/auth'
 import { supabase } from '../_lib/supabase'
+import { isUUID } from '../_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const auth = await verifyAuth(req)
 
     const groupId = req.query.groupId as string || req.body?.groupId as string
-    if (!groupId) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId is required' } })
+    if (!groupId || !isUUID(groupId)) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId must be a valid UUID' } })
     }
 
     // Verify the user is admin of this specific group
@@ -54,12 +55,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (typeof name !== 'string' || !name.trim()) {
           return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invalid group name' } })
         }
+        if (name.trim().length > 100) {
+          return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Group name must be at most 100 characters' } })
+        }
         updates.name = name.trim()
       }
 
       if (weeklyTokenAmount !== undefined) {
-        if (!Number.isInteger(weeklyTokenAmount) || weeklyTokenAmount < 1) {
-          return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Weekly token amount must be a positive integer' } })
+        if (!Number.isInteger(weeklyTokenAmount) || weeklyTokenAmount < 1 || weeklyTokenAmount > 1_000_000) {
+          return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Weekly token amount must be an integer between 1 and 1,000,000' } })
         }
         updates.weekly_token_amount = weeklyTokenAmount
       }

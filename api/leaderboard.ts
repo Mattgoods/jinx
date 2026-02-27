@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyAuth, AuthError } from './_lib/auth'
 import { supabase } from './_lib/supabase'
+import { isUUID } from './_lib/validation'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -11,8 +12,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const auth = await verifyAuth(req)
     const groupId = req.query.groupId as string
 
-    if (!groupId) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId is required' } })
+    if (!groupId || !isUUID(groupId)) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'groupId must be a valid UUID' } })
     }
 
     // Verify membership

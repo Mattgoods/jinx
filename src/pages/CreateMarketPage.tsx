@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useUser } from '@clerk/clerk-react'
 import { useApiClient } from '../lib/api.ts'
+import { validateRequired, validateFutureDate, validateDateRange } from '../lib/validation.ts'
 import { Button, FormField, PageHeader, useToast } from '../components/ui'
 
 interface GroupMember {
@@ -12,6 +14,7 @@ export function CreateMarketPage() {
   const { groupId } = useParams<{ groupId: string }>()
   const api = useApiClient()
   const navigate = useNavigate()
+  const { user } = useUser()
   const { addToast } = useToast()
   const [members, setMembers] = useState<GroupMember[]>([])
   const [targetUserId, setTargetUserId] = useState('')
@@ -19,6 +22,7 @@ export function CreateMarketPage() {
   const [windowStart, setWindowStart] = useState('')
   const [windowEnd, setWindowEnd] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -31,6 +35,31 @@ export function CreateMarketPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const errors: Record<string, string> = {}
+
+    if (!targetUserId) {
+      errors.target = 'Please select a target person'
+    } else if (user && members.find((m) => m.user_id === targetUserId && m.user_id === user.id)) {
+      errors.target = 'You cannot target yourself'
+    }
+
+    const wordError = validateRequired(secretWord, 'Secret word', 50)
+    if (wordError) errors.secretWord = wordError
+
+    const startError = validateFutureDate(windowStart, 'Start time')
+    if (startError) errors.windowStart = startError
+
+    const endError = windowEnd ? validateFutureDate(windowEnd, 'End time') : 'End time is required'
+    if (endError) errors.windowEnd = endError
+
+    if (!startError && !endError) {
+      const rangeError = validateDateRange(windowStart, windowEnd)
+      if (rangeError) errors.windowEnd = rangeError
+    }
+
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
     setSubmitting(true)
     setError('')
     try {
@@ -63,6 +92,7 @@ export function CreateMarketPage() {
           id="target"
           value={targetUserId}
           onChange={(e) => setTargetUserId(e.target.value)}
+          error={fieldErrors.target}
           required
         >
           <option value="">Select a person...</option>
@@ -77,6 +107,8 @@ export function CreateMarketPage() {
           value={secretWord}
           onChange={(e) => setSecretWord(e.target.value)}
           placeholder="e.g., synergy"
+          maxLength={50}
+          error={fieldErrors.secretWord}
           required
         />
         <FormField
@@ -85,6 +117,7 @@ export function CreateMarketPage() {
           type="datetime-local"
           value={windowStart}
           onChange={(e) => setWindowStart(e.target.value)}
+          error={fieldErrors.windowStart}
           required
         />
         <FormField
@@ -93,6 +126,7 @@ export function CreateMarketPage() {
           type="datetime-local"
           value={windowEnd}
           onChange={(e) => setWindowEnd(e.target.value)}
+          error={fieldErrors.windowEnd}
           required
         />
         {error && <p className="text-sm text-accent-red">{error}</p>}

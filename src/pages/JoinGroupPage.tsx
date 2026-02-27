@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApiClient } from '../lib/api.ts'
+import { validateInviteCode } from '../lib/validation.ts'
 import { Button, FormField, PageHeader, useToast } from '../components/ui'
 
 export function JoinGroupPage() {
@@ -9,11 +10,17 @@ export function JoinGroupPage() {
   const { addToast } = useToast()
   const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState('')
+  const [codeError, setCodeError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!inviteCode.trim()) return
+    const validationError = validateInviteCode(inviteCode)
+    if (validationError) {
+      setCodeError(validationError)
+      return
+    }
+    setCodeError('')
     setSubmitting(true)
     setError('')
     try {
@@ -42,6 +49,7 @@ export function JoinGroupPage() {
           onChange={(e) => setInviteCode(e.target.value)}
           placeholder="ABC12345"
           mono
+          error={codeError}
           required
         />
         {error && <p className="text-sm text-accent-red">{error}</p>}

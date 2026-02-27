@@ -74,6 +74,49 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Error boundary wrapping the entire app
 - 401 response interception → auto sign-out + redirect
 
+### Phase 9.1 — Input Validation & Environment Safety ✅
+- **Problem:** API endpoints had inconsistent input validation — missing UUID format checks, no string length limits, no type coercion guards. Frontend forms relied almost entirely on HTML `required` with no inline error feedback.
+- **Fix:** Full-stack input validation across all API endpoints and frontend forms:
+  - **Shared server validation library** (`api/_lib/validation.ts`):
+    - `validateUUID` — UUID v4 format check for all ID fields
+    - `validateString` — required + min/max length (group names ≤100, secret words ≤50, display names ≤100)
+    - `validatePositiveInt` — integer type + range (bet amounts 1–1M, weekly tokens 1–1M)
+    - `validateDate` — ISO date string parsing with error-or-value return type
+    - `validateEnum` — allowlist check for `side`, `outcome`, and `status` query params
+    - `firstError` — collect multiple validation checks, return first failure
+    - `requireEnvVars` — fail-fast on missing environment variables at module load
+    - `MARKET_STATUSES` — typed constant for status filter query params
+  - **All 12 API endpoints updated** with consistent validation:
+    - `bets/place` — UUID marketId, enum side, positive int amount with max cap
+    - `markets/create` — UUID groupId/targetUserId, string secretWord (≤50), dates parsed + validated
+    - `markets/resolve` — UUID marketId, enum outcome
+    - `markets/cancel` — UUID marketId
+    - `markets/index` — UUID groupId, enum status filter
+    - `markets/[id]` — UUID marketId
+    - `groups/manage` (create) — string name (≤100 chars)
+    - `groups/manage` (join) — alphanumeric invite code format check
+    - `groups/manage` (members) — UUID userId + groupId
+    - `groups/manage` (regenerate-invite) — UUID groupId
+    - `groups/settings` — UUID groupId, name ≤100, weekly tokens 1–1M
+    - `groups/[id]` — UUID groupId
+    - `leaderboard` — UUID groupId
+    - `users/index` (sync) — displayName trimmed + capped at 100, avatarUrl length-checked
+  - **Environment variable validation:**
+    - `CLERK_SECRET_KEY` validated at module load in `auth.ts` via `requireEnvVars`
+    - `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` already validated in `supabase.ts`
+  - **Shared frontend validation library** (`src/lib/validation.ts`):
+    - `validateRequired` — non-empty + max length
+    - `validateAmount` — positive integer + optional max
+    - `validateFutureDate` — valid date + future check
+    - `validateDateRange` — end must be after start
+    - `validateInviteCode` — alphanumeric format check
+  - **5 frontend forms updated** with inline field-level error feedback:
+    - `CreateMarketPage` — self-target check, secret word length, start/end date validation
+    - `CreateGroupPage` — name required + max 100 chars
+    - `JoinGroupPage` — alphanumeric invite code format
+    - `GroupSettingsPage` — name required, weekly token amount range
+    - `MarketDetailPage` (bet form) — integer check on bet amount
+
 ### Testing Infrastructure ✅
 - Vitest configured with jsdom environment in `vite.config.ts`
 - `@testing-library/react` + `@testing-library/jest-dom` installed
@@ -111,10 +154,6 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Run `supabase db push` against the target Supabase project
 - Verify all tables, indexes, RLS policies, and RPC functions exist
 
-### Phase 9 — Hardening (continued)
-- Input validation (consider zod) on frontend forms and API endpoints
-- Environment variable validation on serverless startup
-
 ### Future Enhancements
 - Countdown timer component with urgent pulse animation (spec 07)
 - Market card glow effects: green (active), amber (pending resolution) (spec 07)
@@ -133,3 +172,4 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead.
 - **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
 - **Test setup:** Vitest + jsdom + @testing-library/react. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
+- **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.
