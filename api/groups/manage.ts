@@ -61,7 +61,7 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
     .insert({
       group_id: group.id,
       user_id: auth.userId,
-      token_balance: 0,
+      token_balance: group.weekly_token_amount,
     })
 
   if (memberError) {
@@ -110,7 +110,7 @@ async function handleJoin(req: VercelRequest, res: VercelResponse) {
     .insert({
       group_id: group.id,
       user_id: auth.userId,
-      token_balance: 0,
+      token_balance: group.weekly_token_amount,
     })
 
   if (memberError) {
