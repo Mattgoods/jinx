@@ -45,3 +45,12 @@ Run these after implementing to get immediate feedback:
 - ESLint strict no-unused-vars: cannot use `_` prefix for destructured-away props; use object key filtering instead
 - Vitest configured in `vite.config.ts` with `jsdom` environment, setup file at `src/test/setup.ts`
 - `react-hooks/set-state-in-effect` lint rule: avoid calling setState synchronously in useEffect; use event handlers or `.then()` callbacks
+- `react-refresh/only-export-components` lint rule: don't export hooks and components from the same file; split into separate modules
+
+## Vercel Deployment
+
+- **Output directory:** Vite outputs to `dist/`, set `"outputDirectory": "dist"` in `vercel.json`
+- **No `.ts` extensions in API imports:** Vercel compiles each serverless function independently (not using project tsconfig), so `.ts` import extensions cause TS5097 errors. Always use extensionless imports in `api/` files.
+- **Hobby plan limit:** Max 12 serverless functions. Consolidated endpoints use `api/groups/manage.ts` (dispatches create/join/members/regenerate-invite via `?action=` query param) and `api/users/index.ts` (dispatches profile/sync via `?action=` query param). Old paths are mapped via Vercel rewrites in `vercel.json`.
+- **Function count:** Only `.ts` files directly in `api/` subfolders count as functions; `api/_lib/` is excluded (underscore prefix). Currently at exactly 12 functions.
+- **Tests:** 55 tests across 9 test files (run `npx vitest run`)
