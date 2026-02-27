@@ -1,6 +1,6 @@
 import { verifyToken } from '@clerk/backend'
-import { supabase } from './supabase'
-import { requireEnvVars } from './validation'
+import { supabase } from './supabase.js'
+import { requireEnvVars } from './validation.js'
 import type { VercelRequest } from '@vercel/node'
 
 // Fail fast if CLERK_SECRET_KEY is missing

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { verifyAuth, AuthError } from '../_lib/auth'
-import { supabase } from '../_lib/supabase'
-import { isUUID, MARKET_STATUSES } from '../_lib/validation'
+import { verifyAuth, AuthError } from '../_lib/auth.js'
+import { supabase } from '../_lib/supabase.js'
+import { isUUID, MARKET_STATUSES } from '../_lib/validation.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

@@ -50,7 +50,7 @@ Run these after implementing to get immediate feedback:
 ## Vercel Deployment
 
 - **Output directory:** Vite outputs to `dist/`, set `"outputDirectory": "dist"` in `vercel.json`
-- **No `.ts` extensions in API imports:** Vercel compiles each serverless function independently (not using project tsconfig), so `.ts` import extensions cause TS5097 errors. Always use extensionless imports in `api/` files.
+- **ESM `.js` extensions in API imports:** `package.json` has `"type": "module"`, so Node.js uses ESM resolution which requires explicit file extensions. All relative imports in `api/` must use `.js` extensions (e.g. `from '../_lib/auth.js'`). TypeScript resolves `.js` → `.ts` via `moduleResolution: "nodenext"` in `tsconfig.api.json`. Never use `.ts` extensions (causes TS5097) or extensionless imports (causes ERR_MODULE_NOT_FOUND at runtime on Vercel).
 - **Hobby plan limit:** Max 12 serverless functions. Consolidated endpoints use `api/groups/manage.ts` (dispatches create/join/members/regenerate-invite via `?action=` query param) and `api/users/index.ts` (dispatches profile/sync via `?action=` query param). Old paths are mapped via Vercel rewrites in `vercel.json`.
 - **Function count:** Only `.ts` files directly in `api/` subfolders count as functions; `api/_lib/` is excluded (underscore prefix). Currently at exactly 12 functions.
 - **Tests:** 69 tests across 10 test files (run `npx vitest run`)

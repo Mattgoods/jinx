@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyToken } from '@clerk/backend'
-import { verifyAuth, AuthError } from '../_lib/auth'
-import { supabase } from '../_lib/supabase'
-import { validateString } from '../_lib/validation'
+import { verifyAuth, AuthError } from '../_lib/auth.js'
+import { supabase } from '../_lib/supabase.js'
+import { validateString } from '../_lib/validation.js'
 
 async function handleProfile(req: VercelRequest, res: VercelResponse) {
   const auth = await verifyAuth(req)

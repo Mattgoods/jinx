@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { verifyAuth, AuthError } from '../_lib/auth'
-import { supabase } from '../_lib/supabase'
-import { validateString, validateUUID, firstError } from '../_lib/validation'
+import { verifyAuth, AuthError } from '../_lib/auth.js'
+import { supabase } from '../_lib/supabase.js'
+import { validateString, validateUUID, firstError } from '../_lib/validation.js'
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
