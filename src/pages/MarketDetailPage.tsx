@@ -44,7 +44,7 @@ export function MarketDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    api(`/markets/${id}`)
+    api(`/markets/detail?marketId=${id}`)
       .then((res: { data: { market: Market; bets: Bet[]; isTarget: boolean } }) => {
         setMarket(res.data.market)
         setBets(res.data.bets)

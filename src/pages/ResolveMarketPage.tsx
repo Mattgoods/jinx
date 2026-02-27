@@ -25,7 +25,7 @@ export function ResolveMarketPage() {
 
   useEffect(() => {
     if (!id) return
-    api(`/markets/${id}`)
+    api(`/markets/detail?marketId=${id}`)
       .then((res: { data: { market: Market } }) => setMarket(res.data.market))
       .catch(console.error)
   }, [id, api])
