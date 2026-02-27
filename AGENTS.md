@@ -11,10 +11,11 @@
 
 Run these after implementing to get immediate feedback:
 
-- Tests: `npx vitest run`
-- Typecheck: `npx tsc --noEmit`
-- Lint: `npx eslint src/ api/ --max-warnings=0`
-- Build: `npm run build`
+- Typecheck: `npx tsc -b` (uses project references, builds all tsconfigs)
+- Typecheck (no emit): `npx tsc --noEmit` only checks `src/`, use `tsc -b` for full check including `api/`
+- Lint: `npx eslint .` (config in `eslint.config.js`, covers `**/*.{ts,tsx}`)
+- Build: `npm run build` (runs `tsc -b && vite build`)
+- Tests: `npx vitest run` (no tests yet)
 
 ## Project Structure
 
@@ -35,4 +36,8 @@ Run these after implementing to get immediate feedback:
 
 ## Operational Notes
 
-(Ralph will add learnings here as the project develops)
+- Tailwind v4 uses `@theme` in CSS instead of `tailwind.config.ts` — design tokens are in `src/index.css`
+- API functions use `@vercel/node` types (`VercelRequest`, `VercelResponse`)
+- Three tsconfig files: `tsconfig.app.json` (src/), `tsconfig.node.json` (vite.config), `tsconfig.api.json` (api/)
+- `tsc -b` builds all three; `tsc --noEmit` alone only checks the files in `tsconfig.app.json` include
+- Supabase RPC functions (`place_bet`, `increment_balance`) are defined in the migration SQL and called via `supabase.rpc()`
