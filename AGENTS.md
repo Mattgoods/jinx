@@ -15,7 +15,7 @@ Run these after implementing to get immediate feedback:
 - Typecheck (no emit): `npx tsc --noEmit` only checks `src/`, use `tsc -b` for full check including `api/`
 - Lint: `npx eslint .` (config in `eslint.config.js`, covers `**/*.{ts,tsx}`)
 - Build: `npm run build` (runs `tsc -b && vite build`)
-- Tests: `npx vitest run` (75 tests for UI components)
+- Tests: `npx vitest run` (88 tests for UI components and pages)
 
 ## Project Structure
 
@@ -44,8 +44,9 @@ Run these after implementing to get immediate feedback:
 - Supabase RPC functions (`place_bet`, `increment_balance`) are defined in the migration SQL and called via `supabase.rpc()`
 - ESLint strict no-unused-vars: cannot use `_` prefix for destructured-away props; use object key filtering instead
 - Vitest configured in `vite.config.ts` with `jsdom` environment, setup file at `src/test/setup.ts`
-- `react-hooks/set-state-in-effect` lint rule: avoid calling setState synchronously in useEffect; use event handlers or `.then()` callbacks
+- `react-hooks/set-state-in-effect` lint rule: avoid calling setState synchronously in useEffect; use `.then()` callbacks instead of calling a function that sets state
 - `react-refresh/only-export-components` lint rule: don't export hooks and components from the same file; split into separate modules
+- `@testing-library/user-event` is installed for testing user interactions (e.g. select dropdowns)
 
 ## Vercel Deployment
 
@@ -53,4 +54,4 @@ Run these after implementing to get immediate feedback:
 - **ESM `.js` extensions in API imports:** `package.json` has `"type": "module"`, so Node.js uses ESM resolution which requires explicit file extensions. All relative imports in `api/` must use `.js` extensions (e.g. `from '../_lib/auth.js'`). TypeScript resolves `.js` → `.ts` via `moduleResolution: "nodenext"` in `tsconfig.api.json`. Never use `.ts` extensions (causes TS5097) or extensionless imports (causes ERR_MODULE_NOT_FOUND at runtime on Vercel).
 - **Hobby plan limit:** Max 12 serverless functions. Consolidated endpoints use `api/groups/manage.ts` (dispatches create/join/members/regenerate-invite via `?action=` query param) and `api/users/index.ts` (dispatches profile/sync via `?action=` query param). Old paths are mapped via Vercel rewrites in `vercel.json`.
 - **Function count:** Only `.ts` files directly in `api/` subfolders count as functions; `api/_lib/` is excluded (underscore prefix). Currently at exactly 12 functions.
-- **Tests:** 75 tests across 10 test files (run `npx vitest run`)
+- **Tests:** 88 tests across 11 test files (run `npx vitest run`)

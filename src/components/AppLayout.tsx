@@ -7,6 +7,7 @@ import { TokenAmount } from './ui'
 
 const navLinks = [
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/bets', label: 'My Bets' },
   { to: '/profile', label: 'Profile' },
 ]
 

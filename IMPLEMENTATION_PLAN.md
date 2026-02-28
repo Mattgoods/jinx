@@ -55,6 +55,7 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Barrel export via `src/components/ui/index.ts`
 - All 10 existing pages updated to use shared components (reduced ~40% duplicated markup)
 - 45 unit tests across 8 test files (all passing)
+- `@testing-library/user-event` installed for user interaction testing
 
 ### Phase 8.2 — GroupDetailPage (Markets Browser) ✅
 - **Problem:** No way to browse markets in a group. Users could create markets but had no list view.
@@ -170,7 +171,24 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Integrated into 2 pages:**
   - `GroupDetailPage` — market list cards glow green when active, amber when pending resolution
   - `MarketDetailPage` — main market card glows based on status
-- 6 new Card unit tests covering glow-green, glow-amber, and no-glow default (75 tests total, all passing)
+- 6 new Card unit tests covering glow-green, glow-amber, and no-glow default (88 tests total across 11 test files, all passing)
+
+### Phase 10.3 — Betting History Page ✅
+- **Problem:** Users had no dedicated view to browse their full betting history across groups, filter by group, or see aggregate stats on their betting activity. The profile page showed a basic list but lacked filtering, potential payout info, and summary statistics.
+- **Fix:** Added a fully featured Betting History page:
+  - **API endpoint:** `GET /api/users/bets` (`?action=bets` on `users/index.ts`) — returns the user's full bet history with market details (target, secret word, status, pools), group info, and timestamps. Optional `?groupId=` query param filters to a single group. Verifies group membership when filtering. Redacts secret word for target users on unresolved markets. Also returns user's group list for the filter dropdown.
+  - **Vercel rewrite:** `/api/users/bets` → `/api/users?action=bets` in `vercel.json` (no new function file — stays within 12-function Hobby plan limit)
+  - **Frontend page:** `BettingHistoryPage` at `/bets` with:
+    - Group filter dropdown (All Groups + each group the user belongs to)
+    - Summary stats cards: Total Bets, Total Wagered, Net P/L, Win Rate
+    - Bet list showing target name, secret word (or REDACTED), bet side badge, market status badge, group name, placed date, window end date
+    - Wagered amount + resolved P/L (green/red) for settled bets, or potential payout for open bets
+    - Each bet card links to the market detail page
+    - Empty state when no bets exist
+  - **Navigation:** "My Bets" link added to nav bar between Dashboard and Profile
+  - **Route:** `/bets` added in `App.tsx` within the authenticated layout
+  - 13 unit tests covering loading state, data rendering, empty state, summary stats, group filter interaction, secret word redaction, P/L display, potential payouts, status badges, link targets, and page title
+  - Installed `@testing-library/user-event` as a dev dependency for testing select interactions
 
 ---
 
@@ -197,5 +215,6 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead. `Card` supports `glow` prop (`'green'` | `'amber'`) for status-based box-shadow effects.
 - **Countdown timer:** `CountdownTimer` component accepts `targetDate` (ISO string), auto-updates every second. Applies `countdown-urgent` CSS class when remaining time < `urgentThresholdMs` (default 1h). Uses JetBrains Mono. Exported from barrel `src/components/ui/index.ts`.
 - **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
-- **Test setup:** Vitest + jsdom + @testing-library/react. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
+- **Betting history:** `GET /api/users/bets` (dispatched via `?action=bets` on `users/index.ts`) returns full bet history with market + group details. Optional `?groupId=` filter. Rewrite in `vercel.json`. Frontend page at `/bets` with group filter dropdown, summary stats, and clickable bet cards linking to market detail.
+- **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.

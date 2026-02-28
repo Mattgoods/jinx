@@ -9,6 +9,7 @@
     { "source": "/api/groups/regenerate-invite", "destination": "/api/groups/manage?action=regenerate-invite" },
     { "source": "/api/users/sync", "destination": "/api/users?action=sync" },
     { "source": "/api/users/profile", "destination": "/api/users?action=profile" },
+    { "source": "/api/users/bets", "destination": "/api/users?action=bets" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],

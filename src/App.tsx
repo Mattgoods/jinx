@@ -12,6 +12,7 @@ import { CreateMarketPage } from './pages/CreateMarketPage.tsx'
 import { MarketDetailPage } from './pages/MarketDetailPage.tsx'
 import { ResolveMarketPage } from './pages/ResolveMarketPage.tsx'
 import { LeaderboardPage } from './pages/LeaderboardPage.tsx'
+import { BettingHistoryPage } from './pages/BettingHistoryPage.tsx'
 import { ProfilePage } from './pages/ProfilePage.tsx'
 import { GroupDetailPage } from './pages/GroupDetailPage.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
@@ -35,6 +36,7 @@ export function App() {
           <Route path="/group/:groupId/leaderboard" element={<LeaderboardPage />} />
           <Route path="/markets/:id" element={<MarketDetailPage />} />
           <Route path="/markets/:id/resolve" element={<ResolveMarketPage />} />
+          <Route path="/bets" element={<BettingHistoryPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
