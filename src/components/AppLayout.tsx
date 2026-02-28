@@ -1,17 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { UserButton } from '@clerk/clerk-react'
 import { useUserSync } from '../hooks/useUserSync.tsx'
+import { useApiClient } from '../lib/api.ts'
+import { TokenAmount } from './ui'
 
 const navLinks = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/profile', label: 'Profile' },
 ]
 
+function extractGroupId(pathname: string): string | null {
+  const match = pathname.match(/^\/group\/([^/]+)/)
+  return match ? match[1] : null
+}
+
 export function AppLayout() {
   useUserSync()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const api = useApiClient()
+  const [groupBalance, setGroupBalance] = useState<number | null>(null)
+
+  const activeGroupId = useMemo(() => extractGroupId(location.pathname), [location.pathname])
+
+  useEffect(() => {
+    if (!activeGroupId) {
+      setGroupBalance(null)
+      return
+    }
+    api('/users/profile')
+      .then((res: { data: { memberships: { group_id: string; token_balance: number }[] } }) => {
+        const membership = (res.data.memberships || []).find(
+          (m: { group_id: string }) => m.group_id === activeGroupId,
+        )
+        setGroupBalance(membership ? membership.token_balance : null)
+      })
+      .catch(() => { /* ignore */ })
+  }, [api, activeGroupId])
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -36,6 +62,11 @@ export function AppLayout() {
                 {link.label}
               </Link>
             ))}
+            {groupBalance !== null && (
+              <span className="flex items-center gap-1 text-sm text-text-secondary">
+                🪙 <TokenAmount amount={groupBalance} />
+              </span>
+            )}
             <UserButton />
           </div>
 
@@ -73,6 +104,11 @@ export function AppLayout() {
                   {link.label}
                 </Link>
               ))}
+              {groupBalance !== null && (
+                <span className="flex items-center gap-1 text-sm text-text-secondary">
+                  🪙 <TokenAmount amount={groupBalance} />
+                </span>
+              )}
               <div className="pt-1">
                 <UserButton />
               </div>
