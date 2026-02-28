@@ -121,7 +121,7 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Vitest configured with jsdom environment in `vite.config.ts`
 - `@testing-library/react` + `@testing-library/jest-dom` installed
 - Test setup with cleanup in `src/test/setup.ts`
-- 69 tests for all UI components (10 test files, all passing)
+- 75 tests for all UI components (10 test files, all passing)
 
 ### Bug Fix: Group Context Routing ✅
 - All group-scoped pages use `:groupId` URL param with proper API calls
@@ -160,6 +160,18 @@ A social prediction market where friends bet fake currency on whether someone wi
   - `GroupDetailPage` — replaces static date display on market cards with live countdown
 - 14 unit tests covering time formatting (days/hours/minutes/seconds), urgent threshold, label display, custom expired text, live tick updates, and transition to expired state
 
+### Phase 10.2 — Market Card Glow Effects ✅
+- **Problem:** Market cards had no visual distinction between active and pending resolution states beyond the status badge text.
+- **Fix:** Added soft box-shadow glow effects to market cards per spec 07:
+  - `Card` component gained a `glow` prop accepting `'green'` or `'amber'` variants
+  - CSS classes `glow-green` and `glow-amber` in `src/index.css` with layered translucent box-shadows
+  - Green glow (active markets): `rgba(16, 185, 129)` — matches `--color-accent-green`
+  - Amber glow (pending resolution markets): `rgba(245, 158, 11)` — matches `--color-accent-amber`
+- **Integrated into 2 pages:**
+  - `GroupDetailPage` — market list cards glow green when active, amber when pending resolution
+  - `MarketDetailPage` — main market card glows based on status
+- 6 new Card unit tests covering glow-green, glow-amber, and no-glow default (75 tests total, all passing)
+
 ---
 
 ## Remaining Work
@@ -169,7 +181,7 @@ A social prediction market where friends bet fake currency on whether someone wi
 - Verify all tables, indexes, RLS policies, and RPC functions exist
 
 ### Future Enhancements
-- Market card glow effects: green (active), amber (pending resolution) (spec 07)
+- Token amounts count up/down with easing on bet placement and resolution (spec 07)
 
 ---
 
@@ -182,7 +194,7 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Race condition protection:** `place_bet` RPC uses `SELECT ... FOR UPDATE` on `group_members`
 - **Lazy status transitions:** `GET /api/markets` and `GET /api/markets/[id]` auto-transition active markets past `window_end` to `pending_resolution`
 - **Group context routing:** All group-scoped pages use `:groupId` URL param. `api/groups/[id].ts` returns group detail + members for any group member. Settings/regenerate-invite APIs require explicit `groupId` param.
-- **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead.
+- **UI components:** All shared in `src/components/ui/` with barrel export. ESLint strict no-unused-vars means no `_` prefix destructuring — use object key filtering pattern instead. `Card` supports `glow` prop (`'green'` | `'amber'`) for status-based box-shadow effects.
 - **Countdown timer:** `CountdownTimer` component accepts `targetDate` (ISO string), auto-updates every second. Applies `countdown-urgent` CSS class when remaining time < `urgentThresholdMs` (default 1h). Uses JetBrains Mono. Exported from barrel `src/components/ui/index.ts`.
 - **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
 - **Test setup:** Vitest + jsdom + @testing-library/react. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.

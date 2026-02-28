@@ -125,7 +125,7 @@ export function GroupDetailPage() {
         <div className="space-y-3">
           {markets.map((market) => (
             <Link key={market.id} to={`/markets/${market.id}`} className="block">
-              <Card animate className="transition-colors hover:bg-bg-hover">
+              <Card animate glow={market.status === 'active' ? 'green' : market.status === 'pending_resolution' ? 'amber' : undefined} className="transition-colors hover:bg-bg-hover">
                 <div className="mb-3 flex items-start justify-between">
                   <div>
                     <p className="text-sm text-text-secondary">

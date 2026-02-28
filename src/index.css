@@ -57,6 +57,15 @@ body {
   transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Market card status glows */
+.glow-green {
+  box-shadow: 0 0 12px 2px rgba(16, 185, 129, 0.15), 0 0 4px 1px rgba(16, 185, 129, 0.1);
+}
+
+.glow-amber {
+  box-shadow: 0 0 12px 2px rgba(245, 158, 11, 0.15), 0 0 4px 1px rgba(245, 158, 11, 0.1);
+}
+
 /* Toast animations */
 @keyframes toastSlideIn {
   from { opacity: 0; transform: translateX(100%); }

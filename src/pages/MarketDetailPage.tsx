@@ -110,7 +110,7 @@ export function MarketDetailPage() {
       >
         <span aria-hidden="true">&larr;</span> Group
       </Link>
-      <Card padding="lg" className="mb-6">
+      <Card padding="lg" glow={market.status === 'active' ? 'green' : market.status === 'pending_resolution' ? 'amber' : undefined} className="mb-6">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <p className="text-sm text-text-secondary">

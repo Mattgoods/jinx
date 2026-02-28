@@ -40,4 +40,21 @@ describe('Card', () => {
     render(<Card className="custom-class"><span data-testid="child">Test</span></Card>)
     expect(screen.getByTestId('child').parentElement!.className).toContain('custom-class')
   })
+
+  it('applies glow-green class when glow is green', () => {
+    render(<Card glow="green"><span data-testid="child">Glow</span></Card>)
+    expect(screen.getByTestId('child').parentElement!.className).toContain('glow-green')
+  })
+
+  it('applies glow-amber class when glow is amber', () => {
+    render(<Card glow="amber"><span data-testid="child">Glow</span></Card>)
+    expect(screen.getByTestId('child').parentElement!.className).toContain('glow-amber')
+  })
+
+  it('does not apply glow class by default', () => {
+    render(<Card><span data-testid="child">No glow</span></Card>)
+    const cls = screen.getByTestId('child').parentElement!.className
+    expect(cls).not.toContain('glow-green')
+    expect(cls).not.toContain('glow-amber')
+  })
 })

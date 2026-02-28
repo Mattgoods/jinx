@@ -1,8 +1,16 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 
+type GlowVariant = 'green' | 'amber'
+
+const glowClasses: Record<GlowVariant, string> = {
+  green: 'glow-green',
+  amber: 'glow-amber',
+}
+
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
   animate?: boolean
+  glow?: GlowVariant
   padding?: 'sm' | 'md' | 'lg'
 }
 
@@ -12,10 +20,10 @@ const paddingClasses = {
   lg: 'p-6',
 }
 
-export function Card({ children, animate = false, padding = 'md', className = '', ...rest }: CardProps) {
+export function Card({ children, animate = false, glow, padding = 'md', className = '', ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-border bg-bg-surface ${paddingClasses[padding]} ${animate ? 'card-enter' : ''} ${className}`}
+      className={`rounded-xl border border-border bg-bg-surface ${paddingClasses[padding]} ${animate ? 'card-enter' : ''} ${glow ? glowClasses[glow] : ''} ${className}`}
       {...rest}
     >
       {children}
