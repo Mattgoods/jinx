@@ -32,9 +32,7 @@ export function LandingPage() {
           <div className="mb-8 flex justify-center">
             <div className="relative">
               <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-accent-green/10 ring-1 ring-accent-green/20">
-                <svg className="h-14 w-14 text-accent-green" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-6.99 15c-.7 0-1.26-.56-1.26-1.26 0-.71.56-1.25 1.26-1.25.71 0 1.25.54 1.25 1.25-.01.69-.54 1.26-1.25 1.26zm3.01-7.4c-.76 1.11-1.48 1.46-1.87 2.17-.16.29-.22.48-.22 1.09h-1.98c0-.74.05-1.36.4-2.02.45-.81 1.27-1.42 1.65-2.14.38-.74.27-1.88-.59-2.34-.72-.39-1.67-.17-2.14.42-.39.49-.43 1.04-.43 1.69H7.4c.05-1.74.62-2.66 1.42-3.35 1.11-.96 3.1-1.14 4.46-.41 1.41.75 2.14 2.48 1.74 4.2-.1.43-.33.79-.6 1.15z"/>
-                </svg>
+                <img src="/jinx-logo.png" alt="Jinx" className="h-14 w-14" />
               </div>
               <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-accent-green shadow-[0_0_8px_rgba(0,231,1,0.6)]" />
             </div>
