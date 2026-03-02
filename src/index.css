@@ -131,6 +131,18 @@ body {
 }
 
 /* Sidebar styles */
+.sidebar-transition {
+  transition: width 200ms ease, padding-left 200ms ease;
+}
+
+@keyframes sidebarSlideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.sidebar-slide-in {
+  animation: sidebarSlideIn 200ms ease-out forwards;
+}
 .sidebar-link {
   display: flex;
   align-items: center;

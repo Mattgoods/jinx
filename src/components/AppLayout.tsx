@@ -15,6 +15,7 @@ export function AppLayout() {
   useUserSync()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const api = useApiClient()
   const [groupBalance, setGroupBalance] = useState<number | null>(null)
   const [groupName, setGroupName] = useState<string | null>(null)
@@ -47,21 +48,38 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-bg-primary">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+      />
 
       {/* Main content area - offset for desktop sidebar */}
-      <div className="lg:pl-60">
+      <div className={`sidebar-transition ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-60'}`}>
         {/* Top bar */}
         <header className="sticky top-0 z-20 border-b border-border bg-bg-surface/95 backdrop-blur-sm">
           <div className="flex items-center justify-between px-4 py-3 lg:px-6">
-            {/* Left: hamburger (mobile) + breadcrumb */}
+            {/* Left: hamburger + breadcrumb */}
             <div className="flex items-center gap-3">
+              {/* Mobile: open sidebar overlay */}
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary lg:hidden"
                 aria-label="Toggle menu"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              {/* Desktop: toggle collapse */}
+              <button
+                onClick={() => setSidebarCollapsed((c) => !c)}
+                className="hidden rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary lg:block"
+                aria-label="Toggle sidebar"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
