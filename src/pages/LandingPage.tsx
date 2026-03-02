@@ -30,7 +30,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero */}
-      <main className="flex flex-1 items-center justify-center px-6">
+      <main className="flex flex-1 items-center justify-center px-6 py-16">
         <div className="mx-auto max-w-4xl text-center">
           {/* Decorative elements */}
           <div className="mb-8 flex justify-center">
@@ -63,7 +63,7 @@ export function LandingPage() {
           </div>
 
           {/* Feature cards */}
-          <div className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-20 mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-border bg-bg-surface p-6 text-left">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-accent-green/15">
                 <svg className="h-5 w-5 text-accent-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
