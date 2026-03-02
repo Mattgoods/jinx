@@ -70,11 +70,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-green">
-          <svg className="h-5 w-5 text-bg-primary" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-6.99 15c-.7 0-1.26-.56-1.26-1.26 0-.71.56-1.25 1.26-1.25.71 0 1.25.54 1.25 1.25-.01.69-.54 1.26-1.25 1.26zm3.01-7.4c-.76 1.11-1.48 1.46-1.87 2.17-.16.29-.22.48-.22 1.09h-1.98c0-.74.05-1.36.4-2.02.45-.81 1.27-1.42 1.65-2.14.38-.74.27-1.88-.59-2.34-.72-.39-1.67-.17-2.14.42-.39.49-.43 1.04-.43 1.69H7.4c.05-1.74.62-2.66 1.42-3.35 1.11-.96 3.1-1.14 4.46-.41 1.41.75 2.14 2.48 1.74 4.2-.1.43-.33.79-.6 1.15.03-.01.03-.01 0 0l-.01.01c-.01.01-.02.03-.04.05-.02.02-.04.05-.06.08-.04.05-.07.1-.1.15-.01.01-.01.02-.02.03 0 .01-.01.01-.01.02-.06.1-.11.2-.16.3-.03.06-.05.12-.07.17-.02.06-.04.12-.06.18l-.02.09c-.01.05-.02.1-.03.14 0 .03-.01.05-.01.07 0 .03-.01.06-.01.09v.07z"/>
-          </svg>
-        </div>
+        <img src="/jinx-logo.png" alt="Jinx" className="h-9 w-9 rounded-lg" />
         <span className="text-xl font-bold tracking-tight text-text-primary neon-green">
           Jinx
         </span>

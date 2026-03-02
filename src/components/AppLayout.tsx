@@ -68,11 +68,7 @@ export function AppLayout() {
 
               {/* Logo on mobile */}
               <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-green">
-                  <svg className="h-4 w-4 text-bg-primary" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
-                  </svg>
-                </div>
+                <img src="/jinx-logo.png" alt="Jinx" className="h-7 w-7 rounded-md" />
                 <span className="text-lg font-bold text-text-primary">Jinx</span>
               </Link>
 

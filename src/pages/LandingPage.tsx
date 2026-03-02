@@ -15,11 +15,7 @@ export function LandingPage() {
       <header className="border-b border-border bg-bg-surface/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-green">
-              <svg className="h-5 w-5 text-bg-primary" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
-              </svg>
-            </div>
+            <img src="/jinx-logo.png" alt="Jinx" className="h-9 w-9 rounded-lg" />
             <span className="text-2xl font-bold tracking-tight text-text-primary">Jinx</span>
           </div>
           <div className="flex items-center gap-3">
