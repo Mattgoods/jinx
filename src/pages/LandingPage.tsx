@@ -30,12 +30,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-4xl text-center">
           {/* Decorative elements */}
           <div className="mb-8 flex justify-center">
-            <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-accent-green/10 ring-1 ring-accent-green/20">
-                <img src="/jinx-logo.png" alt="Jinx" className="h-14 w-14" />
-              </div>
-              <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-accent-green shadow-[0_0_8px_rgba(0,231,1,0.6)]" />
-            </div>
+            <img src="/jinx-logo.png" alt="Jinx" className="h-20 w-20" />
           </div>
 
           <h1 className="mb-4 text-5xl font-bold tracking-tight text-text-primary sm:text-6xl" style={{ letterSpacing: '-0.03em' }}>
