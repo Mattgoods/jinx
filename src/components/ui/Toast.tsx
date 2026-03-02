@@ -11,9 +11,9 @@ interface Toast {
 let toastCounter = 0
 
 const variantStyles: Record<ToastVariant, string> = {
-  success: 'border-l-4 border-l-accent-green bg-accent-green/10 text-accent-green',
-  error: 'border-l-4 border-l-accent-red bg-accent-red/10 text-accent-red',
-  info: 'border-l-4 border-l-accent-amber bg-accent-amber/10 text-accent-amber',
+  success: 'border-l-4 border-l-accent-green bg-accent-green/10 text-accent-green shadow-[0_0_12px_rgba(0,231,1,0.15)]',
+  error: 'border-l-4 border-l-accent-red bg-accent-red/10 text-accent-red shadow-[0_0_12px_rgba(237,65,99,0.15)]',
+  info: 'border-l-4 border-l-accent-amber bg-accent-amber/10 text-accent-amber shadow-[0_0_12px_rgba(255,193,7,0.15)]',
 }
 
 const variantIcons: Record<ToastVariant, string> = {

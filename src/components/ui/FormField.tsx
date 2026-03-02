@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes, ReactNode } from 'react'
 
-const inputBase = 'w-full rounded-lg border border-border bg-bg-surface px-4 py-2 text-text-primary placeholder-text-tertiary focus:border-accent-green focus:outline-none'
+const inputBase = 'w-full rounded-lg border border-border bg-bg-input px-4 py-2.5 text-text-primary placeholder-text-tertiary focus:border-accent-green focus:outline-none focus:ring-1 focus:ring-accent-green/30 transition-colors'
 
 const OMIT_KEYS = new Set(['as', 'label', 'id', 'error', 'mono', 'children'])
 

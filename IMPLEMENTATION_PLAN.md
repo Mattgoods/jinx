@@ -190,6 +190,54 @@ A social prediction market where friends bet fake currency on whether someone wi
   - 13 unit tests covering loading state, data rendering, empty state, summary stats, group filter interaction, secret word redaction, P/L display, potential payouts, status badges, link targets, and page title
   - Installed `@testing-library/user-event` as a dev dependency for testing select interactions
 
+### Phase 11 — Stake.us Casino UI Revamp ✅
+- **Problem:** The app used a generic dark theme with a simple top navigation bar. It lacked visual identity and didn't feel like a betting/casino platform.
+- **Fix:** Complete UI overhaul inspired by stake.us (online casino), transforming the entire frontend into a sleek dark casino aesthetic:
+  - **New design tokens** (`src/index.css`):
+    - Primary background: `#0F212E` (dark teal-navy), surface: `#1A2C38`, hover: `#213743`
+    - Accent green: `#00E701` (neon bright), red: `#ED4163`, amber: `#FFC107`, blue: `#1475E1`
+    - Text: primary `#FFFFFF`, secondary `#B1BAD3`, tertiary `#557086`
+    - New utility classes: `.casino-card` (hover lift), `.stat-card-*` (gradient stat cards), `.neon-green` (text glow), `.online-dot` (pulsing indicator), `.spinner` (loading animation), `.skeleton` (shimmer loading)
+    - Custom scrollbar styling matching the dark theme
+  - **Sidebar navigation** (`src/components/Sidebar.tsx`):
+    - Left sidebar replacing top nav bar (stake.us-style)
+    - Desktop: fixed 240px sidebar, always visible
+    - Mobile: slide-over overlay with backdrop, triggered by hamburger button
+    - Nav items: Dashboard, My Bets, Profile with SVG icons
+    - Action items: Create Group, Join Group
+    - Active link highlighting with green accent
+    - "Jinx v1.0" footer with online-dot indicator
+  - **AppLayout rewrite** (`src/components/AppLayout.tsx`):
+    - Sticky top bar with backdrop blur, hamburger toggle (mobile), logo (mobile), group breadcrumb, token balance pill, UserButton
+    - Main content offset for sidebar on desktop (`lg:pl-60`)
+    - Auto-close mobile sidebar on route change
+  - **UI component updates**:
+    - `Button` — green glow shadow on primary, `bg-bg-surface` for ghost variant
+    - `Card` — new `hover` prop for casino-card effect with cursor-pointer
+    - `FormField` — dark input background (`bg-bg-input`), green focus ring
+    - `StatusBadge` — accent-colored borders
+    - `LoadingState` — spinner animation div + centered layout
+    - `TokenAmount` — `toLocaleString()` number formatting, optional `showIcon` prop
+    - `ProbabilityBar` — green glow shadow on fill bar
+    - `PageHeader` — SVG chevron back arrow, green hover accent
+    - `Avatar` — green accent ring on images, green fallback colors
+    - `Toast` — variant-specific glow shadow effects
+  - **Page rewrites** (all 14 pages updated):
+    - `LandingPage` — casino-style hero with neon-green "Jinx" branding, feature cards, sticky header with Login/Register
+    - `Dashboard` — "My Groups" card grid with group icons, online dots, hover effects
+    - `GroupDetailPage` — stat cards bar (Members/Markets/Active), filter toolbar with SVG icons, 2-column market grid
+    - `MarketDetailPage` — enhanced bet UI with glowing side selector buttons, payout preview card, bet list with hover
+    - `LeaderboardPage` — rank medals, hover cards, empty state with SVG icon
+    - `ProfilePage` — stat cards with gradient backgrounds, balance list with group icons, recent bets
+    - `BettingHistoryPage` — stat cards (Total Bets/Wagered/P&L/Win Rate), enhanced bet cards
+    - `CreateGroupPage`, `JoinGroupPage`, `CreateMarketPage` — wrapped forms in bordered cards with descriptive icons
+    - `GroupSettingsPage` — updated form card, invite code with key icon, member list with hover
+    - `ResolveMarketPage` — secret word in green, pool with coin icon, warning banner
+    - `SignInPage`, `SignUpPage` — added Jinx branding header above Clerk components
+    - `ErrorBoundary` — error icon in red circle, green glow button
+  - **Test updates**: 2 test expectations updated to match new styling (ghost button `bg-bg-surface`, TokenAmount `toLocaleString` formatting)
+  - All 88 tests passing, ESLint clean, TypeScript clean, build succeeds
+
 ---
 
 ## Remaining Work
@@ -218,3 +266,4 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Betting history:** `GET /api/users/bets` (dispatched via `?action=bets` on `users/index.ts`) returns full bet history with market + group details. Optional `?groupId=` filter. Rewrite in `vercel.json`. Frontend page at `/bets` with group filter dropdown, summary stats, and clickable bet cards linking to market detail.
 - **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.
+- **Casino UI theme:** Stake.us-inspired dark teal-navy palette (`#0F212E` bg, `#1A2C38` surface, `#00E701` neon green accent). Sidebar navigation replaces top nav bar (fixed on desktop, slide-over on mobile). `Card` supports `hover` prop for casino-card lift effect. `TokenAmount` uses `toLocaleString()` for comma-separated number formatting. All pages use `stat-card-*` gradient classes for stat displays. `AppLayout` uses `Promise.resolve().then()` pattern for setState-in-useEffect to satisfy `react-hooks/set-state-in-effect` lint rule.

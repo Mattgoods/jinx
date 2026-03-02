@@ -56,22 +56,31 @@ export function ResolveMarketPage() {
   const canResolve = windowClosed && (market.status === 'active' || market.status === 'pending_resolution')
 
   return (
-    <div className="mx-auto max-w-md py-12">
+    <div className="mx-auto max-w-md">
       <PageHeader title="Resolve Market" backTo={`/markets/${id}`} backLabel="Market" />
+
       <Card className="mb-6">
         <p className="text-sm text-text-secondary">
           Did <span className="font-semibold text-text-primary">{market.target_display_name}</span> say...
         </p>
-        <p className="mt-1 text-xl font-bold text-text-primary">"{market.secret_word}"</p>
-        <p className="mt-3 text-sm text-text-secondary">
-          Pool: <TokenAmount amount={market.total_pool} /> tokens
+        <p className="mt-2 text-2xl font-bold text-accent-green">
+          &ldquo;{market.secret_word}&rdquo;
         </p>
+        <div className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
+          <svg className="h-4 w-4 text-accent-amber" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 18a8 8 0 100-16 8 8 0 000 16z"/>
+          </svg>
+          Pool: <TokenAmount amount={market.total_pool} /> tokens
+        </div>
       </Card>
 
       {!windowClosed && (
-        <p className="mb-4 text-sm text-accent-amber">
-          Cannot resolve yet — the time window has not closed.
-        </p>
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-accent-amber/20 bg-accent-amber/5 px-4 py-3 text-sm text-accent-amber">
+          <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          Cannot resolve yet \u2014 the time window has not closed.
+        </div>
       )}
 
       {error && <p className="mb-4 text-sm text-accent-red">{error}</p>}

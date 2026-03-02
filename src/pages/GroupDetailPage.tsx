@@ -79,7 +79,7 @@ export function GroupDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl py-6">
+    <div>
       <PageHeader title={group.name} backTo="/dashboard" backLabel="Dashboard">
         <div className="flex gap-2">
           <Button as="link" to={`/group/${groupId}/markets/new`} size="sm">
@@ -96,16 +96,40 @@ export function GroupDetailPage() {
         </div>
       </PageHeader>
 
-      {/* Status filter tabs */}
-      <div className="mb-6 flex flex-wrap gap-2">
+      {/* Group stats bar */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-border bg-bg-surface p-4 text-center stat-card-green">
+          <p className="font-mono text-2xl font-bold text-accent-green">{group.members.length}</p>
+          <p className="text-xs text-text-secondary">Members</p>
+        </div>
+        <div className="rounded-xl border border-border bg-bg-surface p-4 text-center stat-card-amber">
+          <p className="font-mono text-2xl font-bold text-accent-amber">{markets.length}</p>
+          <p className="text-xs text-text-secondary">Markets</p>
+        </div>
+        <div className="hidden rounded-xl border border-border bg-bg-surface p-4 text-center sm:block stat-card-blue">
+          <p className="font-mono text-2xl font-bold text-accent-blue">
+            {markets.filter(m => m.status === 'active').length}
+          </p>
+          <p className="text-xs text-text-secondary">Active</p>
+        </div>
+      </div>
+
+      {/* Filter + Sort toolbar */}
+      <div className="mb-6 flex items-center gap-3 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 text-sm text-text-tertiary">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span className="font-medium">Filter</span>
+        </div>
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => handleFilterChange(f.value)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
               statusFilter === f.value
-                ? 'bg-accent-green text-white'
-                : 'border border-border text-text-secondary hover:bg-bg-hover'
+                ? 'bg-accent-green text-bg-primary shadow-[0_0_8px_rgba(0,231,1,0.3)]'
+                : 'border border-border text-text-secondary hover:bg-bg-hover hover:text-text-primary'
             }`}
           >
             {f.label}
@@ -116,22 +140,31 @@ export function GroupDetailPage() {
       {loading ? (
         <LoadingState />
       ) : markets.length === 0 ? (
-        <Card>
-          <p className="text-center text-text-tertiary">
-            {statusFilter ? 'No markets match this filter.' : 'No markets yet. Create one to get started!'}
-          </p>
+        <Card padding="lg" className="text-center">
+          <div className="py-8">
+            <svg className="mx-auto mb-4 h-12 w-12 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <p className="text-text-secondary">
+              {statusFilter ? 'No markets match this filter.' : 'No markets yet. Create one to get started!'}
+            </p>
+          </div>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           {markets.map((market) => (
             <Link key={market.id} to={`/markets/${market.id}`} className="block">
-              <Card animate glow={market.status === 'active' ? 'green' : market.status === 'pending_resolution' ? 'amber' : undefined} className="transition-colors hover:bg-bg-hover">
+              <Card
+                animate
+                hover
+                glow={market.status === 'active' ? 'green' : market.status === 'pending_resolution' ? 'amber' : undefined}
+              >
                 <div className="mb-3 flex items-start justify-between">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm text-text-secondary">
                       Will <span className="font-semibold text-text-primary">{market.target_display_name}</span> say...
                     </p>
-                    <p className="mt-0.5 text-lg font-bold text-text-primary">
+                    <p className="mt-0.5 truncate text-lg font-bold text-text-primary">
                       {market.secret_word || 'REDACTED'}
                     </p>
                   </div>
@@ -139,7 +172,12 @@ export function GroupDetailPage() {
                 </div>
                 <ProbabilityBar yesPool={market.yes_pool} totalPool={market.total_pool} />
                 <div className="mt-3 flex flex-wrap gap-4 text-sm text-text-secondary">
-                  <span>Pool: <TokenAmount amount={market.total_pool} /></span>
+                  <span className="flex items-center gap-1">
+                    <svg className="h-3.5 w-3.5 text-accent-amber" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16z"/>
+                    </svg>
+                    <TokenAmount amount={market.total_pool} />
+                  </span>
                   <span>By: {market.creator_display_name}</span>
                   <CountdownTimer
                     targetDate={market.window_end}

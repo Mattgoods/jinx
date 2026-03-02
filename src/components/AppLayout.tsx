@@ -4,12 +4,7 @@ import { UserButton } from '@clerk/clerk-react'
 import { useUserSync } from '../hooks/useUserSync.tsx'
 import { useApiClient } from '../lib/api.ts'
 import { TokenAmount } from './ui'
-
-const navLinks = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/bets', label: 'My Bets' },
-  { to: '/profile', label: 'Profile' },
-]
+import { Sidebar } from './Sidebar.tsx'
 
 function extractGroupId(pathname: string): string | null {
   const match = pathname.match(/^\/group\/([^/]+)/)
@@ -19,107 +14,101 @@ function extractGroupId(pathname: string): string | null {
 export function AppLayout() {
   useUserSync()
   const location = useLocation()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const api = useApiClient()
   const [groupBalance, setGroupBalance] = useState<number | null>(null)
+  const [groupName, setGroupName] = useState<string | null>(null)
 
   const activeGroupId = useMemo(() => extractGroupId(location.pathname), [location.pathname])
 
   useEffect(() => {
     if (!activeGroupId) {
-      setGroupBalance(null)
+      Promise.resolve().then(() => {
+        setGroupBalance(null)
+        setGroupName(null)
+      })
       return
     }
     api('/users/profile')
-      .then((res: { data: { memberships: { group_id: string; token_balance: number }[] } }) => {
+      .then((res: { data: { memberships: { group_id: string; group_name: string; token_balance: number }[] } }) => {
         const membership = (res.data.memberships || []).find(
           (m: { group_id: string }) => m.group_id === activeGroupId,
         )
         setGroupBalance(membership ? membership.token_balance : null)
+        setGroupName(membership ? membership.group_name : null)
       })
       .catch(() => { /* ignore */ })
   }, [api, activeGroupId])
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    Promise.resolve().then(() => setSidebarOpen(false))
+  }, [location.pathname])
+
   return (
     <div className="min-h-screen bg-bg-primary">
-      <nav className="border-b border-border bg-bg-surface">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <Link to="/dashboard" className="text-xl font-bold tracking-tight text-text-primary">
-            Jinx
-          </Link>
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-          {/* Desktop nav */}
-          <div className="hidden items-center gap-6 sm:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === link.to
-                    ? 'text-accent-green'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
+      {/* Main content area - offset for desktop sidebar */}
+      <div className="lg:pl-60">
+        {/* Top bar */}
+        <header className="sticky top-0 z-20 border-b border-border bg-bg-surface/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+            {/* Left: hamburger (mobile) + breadcrumb */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary lg:hidden"
+                aria-label="Toggle menu"
               >
-                {link.label}
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              {/* Logo on mobile */}
+              <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-green">
+                  <svg className="h-4 w-4 text-bg-primary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                  </svg>
+                </div>
+                <span className="text-lg font-bold text-text-primary">Jinx</span>
               </Link>
-            ))}
-            {groupBalance !== null && (
-              <span className="flex items-center gap-1 text-sm text-text-secondary">
-                🪙 <TokenAmount amount={groupBalance} />
-              </span>
-            )}
-            <UserButton />
-          </div>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center sm:hidden"
-            aria-label="Toggle menu"
-          >
-            <svg className="h-6 w-6 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              {/* Group context breadcrumb */}
+              {groupName && (
+                <div className="hidden items-center gap-2 text-sm sm:flex">
+                  <span className="text-text-tertiary">/</span>
+                  <Link to={`/group/${activeGroupId}`} className="font-medium text-text-secondary transition-colors hover:text-accent-green">
+                    {groupName}
+                  </Link>
+                </div>
               )}
-            </svg>
-          </button>
-        </div>
+            </div>
 
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div className="border-t border-border px-4 py-3 sm:hidden">
-            <div className="flex flex-col gap-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setMenuOpen(false)}
-                  className={`text-sm font-medium transition-colors ${
-                    location.pathname === link.to
-                      ? 'text-accent-green'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {/* Right: balance + user */}
+            <div className="flex items-center gap-4">
               {groupBalance !== null && (
-                <span className="flex items-center gap-1 text-sm text-text-secondary">
-                  🪙 <TokenAmount amount={groupBalance} />
-                </span>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-bg-primary px-3 py-1.5">
+                  <svg className="h-4 w-4 text-accent-amber" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.55.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a5.389 5.389 0 01-.428-.79h.422a1 1 0 100-2H8.58a7.488 7.488 0 010-1h.92a1 1 0 100-2h-.422c.154-.32.287-.558.428-.79a.997.997 0 00.23-.021z"/>
+                  </svg>
+                  <TokenAmount amount={groupBalance} />
+                </div>
               )}
-              <div className="pt-1">
-                <UserButton />
-              </div>
+              <UserButton />
             </div>
           </div>
-        )}
-      </nav>
-      <main className="mx-auto max-w-5xl px-4 py-6">
-        <Outlet />
-      </main>
+        </header>
+
+        {/* Page content */}
+        <main className="px-4 py-6 lg:px-8">
+          <div className="mx-auto max-w-6xl">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

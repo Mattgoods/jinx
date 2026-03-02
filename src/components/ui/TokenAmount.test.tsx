@@ -5,7 +5,7 @@ import { TokenAmount } from './TokenAmount'
 describe('TokenAmount', () => {
   it('renders the amount', () => {
     render(<TokenAmount amount={1500} />)
-    expect(screen.getByText('1500')).toBeInTheDocument()
+    expect(screen.getByText('1,500')).toBeInTheDocument()
   })
 
   it('applies mono font and amber color', () => {

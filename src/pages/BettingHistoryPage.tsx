@@ -78,12 +78,12 @@ export function BettingHistoryPage() {
   const winRate = resolvedBets.length > 0 ? wins / resolvedBets.length : 0
 
   return (
-    <div className="mx-auto max-w-3xl py-6">
+    <div className="mx-auto max-w-4xl">
       <PageHeader title="Betting History" backTo="/dashboard" backLabel="Dashboard">
         <select
           value={selectedGroup}
           onChange={handleGroupChange}
-          className="rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-green"
+          className="rounded-lg border border-border bg-bg-input px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-green focus:ring-1 focus:ring-accent-green/30 transition-colors"
         >
           <option value="all">All Groups</option>
           {groups.map((g) => (
@@ -95,26 +95,26 @@ export function BettingHistoryPage() {
       </PageHeader>
 
       {/* Summary stats */}
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card className="text-center">
-          <p className="font-mono text-xl font-bold text-text-primary">{bets.length}</p>
-          <p className="text-sm text-text-secondary">Total Bets</p>
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card className="text-center stat-card-blue">
+          <p className="font-mono text-2xl font-bold text-text-primary">{bets.length}</p>
+          <p className="mt-1 text-xs text-text-secondary">Total Bets</p>
         </Card>
-        <Card className="text-center">
-          <p className="font-mono text-xl font-bold text-accent-amber">{totalWagered}</p>
-          <p className="text-sm text-text-secondary">Total Wagered</p>
+        <Card className="text-center stat-card-amber">
+          <p className="font-mono text-2xl font-bold text-accent-amber">{totalWagered.toLocaleString()}</p>
+          <p className="mt-1 text-xs text-text-secondary">Total Wagered</p>
         </Card>
-        <Card className="text-center">
-          <p className={`font-mono text-xl font-bold ${totalPL >= 0 ? 'text-accent-green' : 'text-accent-red'}`}>
+        <Card className="text-center stat-card-green">
+          <p className={`font-mono text-2xl font-bold ${totalPL >= 0 ? 'text-accent-green' : 'text-accent-red'}`}>
             {totalPL >= 0 ? '+' : ''}{totalPL}
           </p>
-          <p className="text-sm text-text-secondary">Net P/L</p>
+          <p className="mt-1 text-xs text-text-secondary">Net P/L</p>
         </Card>
-        <Card className="text-center">
-          <p className="font-mono text-xl font-bold text-text-primary">
+        <Card className="text-center stat-card-red">
+          <p className="font-mono text-2xl font-bold text-text-primary">
             {(winRate * 100).toFixed(0)}%
           </p>
-          <p className="text-sm text-text-secondary">Win Rate</p>
+          <p className="mt-1 text-xs text-text-secondary">Win Rate</p>
         </Card>
       </div>
 
@@ -122,6 +122,9 @@ export function BettingHistoryPage() {
         <LoadingState />
       ) : bets.length === 0 ? (
         <Card className="py-12 text-center">
+          <svg className="mx-auto mb-4 h-12 w-12 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
           <p className="text-text-secondary">No bets found.</p>
           <p className="mt-1 text-sm text-text-tertiary">
             Place your first bet on a market to see it here.
@@ -136,7 +139,7 @@ export function BettingHistoryPage() {
 
             return (
               <Link key={bet.id} to={`/markets/${bet.market_id}`} className="block">
-                <Card className="transition-colors hover:bg-bg-surface-hover px-5 py-4">
+                <Card hover className="px-5 py-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     {/* Left: market info */}
                     <div className="min-w-0 flex-1">

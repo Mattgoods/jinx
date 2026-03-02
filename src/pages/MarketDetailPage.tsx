@@ -103,33 +103,53 @@ export function MarketDetailPage() {
     : 0
 
   return (
-    <div className="mx-auto max-w-2xl py-6">
+    <div className="mx-auto max-w-3xl">
       <Link
         to={`/group/${market.group_id}`}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-text-secondary transition-colors hover:text-text-primary"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm text-text-secondary transition-colors hover:text-accent-green"
       >
-        <span aria-hidden="true">&larr;</span> Group
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Group
       </Link>
-      <Card padding="lg" glow={market.status === 'active' ? 'green' : market.status === 'pending_resolution' ? 'amber' : undefined} className="mb-6">
-        <div className="mb-4 flex items-start justify-between">
+
+      {/* Main market card */}
+      <Card
+        padding="lg"
+        glow={market.status === 'active' ? 'green' : market.status === 'pending_resolution' ? 'amber' : undefined}
+        className="mb-6"
+      >
+        <div className="mb-5 flex items-start justify-between">
           <div>
             <p className="text-sm text-text-secondary">
               Will <span className="font-semibold text-text-primary">{market.target_display_name}</span> say...
             </p>
-            <h2 className="mt-1 text-2xl font-bold text-text-primary" style={{ letterSpacing: '-0.02em' }}>
+            <h2 className="mt-1 text-3xl font-bold text-text-primary" style={{ letterSpacing: '-0.02em' }}>
               {market.secret_word || 'REDACTED'}
             </h2>
           </div>
           <StatusBadge status={market.status} />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-5">
           <ProbabilityBar yesPool={market.yes_pool} totalPool={market.total_pool} />
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm text-text-secondary">
-          <span>Pool: <TokenAmount amount={market.total_pool} /></span>
-          <span>Created by: {market.creator_display_name}</span>
+        <div className="flex flex-wrap gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-accent-amber" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 18a8 8 0 100-16 8 8 0 000 16z"/>
+            </svg>
+            <span className="text-text-secondary">Pool:</span>
+            <TokenAmount amount={market.total_pool} />
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span className="text-text-secondary">{market.creator_display_name}</span>
+          </div>
           {(market.status === 'active' || market.status === 'pending_resolution') && (
             <CountdownTimer
               targetDate={market.window_end}
@@ -142,83 +162,118 @@ export function MarketDetailPage() {
         {(market.status === 'active' || market.status === 'pending_resolution') && (
           <Link
             to={`/markets/${market.id}/resolve`}
-            className="mt-4 inline-block text-sm text-text-tertiary hover:text-text-secondary"
+            className="mt-4 inline-flex items-center gap-1 text-sm text-text-tertiary transition-colors hover:text-accent-green"
           >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             Resolve market
           </Link>
         )}
       </Card>
 
+      {/* Bet placement card */}
       {canBet && (
         <Card padding="lg" className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold text-text-primary">Place Bet</h3>
-          <div className="mb-4 flex gap-2">
+          <h3 className="mb-5 text-lg font-bold text-text-primary">Place Your Bet</h3>
+
+          {/* Side selector */}
+          <div className="mb-5 flex gap-3">
             <button
               onClick={() => setBetSide('yes')}
-              className={`flex-1 rounded-lg px-4 py-2 font-semibold transition-colors ${
+              className={`flex-1 rounded-xl px-4 py-3 font-bold text-lg transition-all ${
                 betSide === 'yes'
-                  ? 'bg-accent-green text-white'
-                  : 'border border-border bg-transparent text-text-secondary hover:bg-bg-hover'
+                  ? 'bg-accent-green text-bg-primary shadow-[0_0_16px_rgba(0,231,1,0.3)]'
+                  : 'border border-border bg-bg-primary text-text-secondary hover:bg-bg-hover hover:border-accent-green/40'
               }`}
             >
               YES
             </button>
             <button
               onClick={() => setBetSide('no')}
-              className={`flex-1 rounded-lg px-4 py-2 font-semibold transition-colors ${
+              className={`flex-1 rounded-xl px-4 py-3 font-bold text-lg transition-all ${
                 betSide === 'no'
-                  ? 'bg-accent-red text-white'
-                  : 'border border-border bg-transparent text-text-secondary hover:bg-bg-hover'
+                  ? 'bg-accent-red text-white shadow-[0_0_16px_rgba(237,65,99,0.3)]'
+                  : 'border border-border bg-bg-primary text-text-secondary hover:bg-bg-hover hover:border-accent-red/40'
               }`}
             >
               NO
             </button>
           </div>
-          <div className="mb-4">
-            <label htmlFor="bet-amount" className="mb-1 block text-sm text-text-secondary">Amount</label>
-            <input
-              id="bet-amount"
-              type="number"
-              min="1"
-              value={betAmountStr}
-              onChange={(e) => setBetAmountStr(e.target.value)}
-              placeholder="Enter amount"
-              className="w-full rounded-lg border border-border bg-bg-primary px-4 py-2 font-mono text-text-primary focus:border-accent-green focus:outline-none"
-            />
-            {betError && <p className="mt-1 text-sm text-accent-red">{betError}</p>}
+
+          {/* Amount input */}
+          <div className="mb-5">
+            <label htmlFor="bet-amount" className="mb-2 block text-sm font-medium text-text-secondary">Bet Amount</label>
+            <div className="relative">
+              <input
+                id="bet-amount"
+                type="number"
+                min="1"
+                value={betAmountStr}
+                onChange={(e) => setBetAmountStr(e.target.value)}
+                placeholder="Enter amount"
+                className="w-full rounded-xl border border-border bg-bg-input px-4 py-3 font-mono text-lg text-text-primary focus:border-accent-green focus:outline-none focus:ring-1 focus:ring-accent-green/30"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <svg className="h-5 w-5 text-accent-amber" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16z"/>
+                </svg>
+              </div>
+            </div>
+            {betError && <p className="mt-1.5 text-sm text-accent-red">{betError}</p>}
           </div>
-          <div className="mb-4 flex flex-wrap gap-4 text-sm text-text-secondary">
-            <span>Potential payout: <TokenAmount amount={previewPayout} /> tokens</span>
+
+          {/* Payout preview */}
+          <div className="mb-5 rounded-xl border border-border bg-bg-primary p-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-secondary">Potential payout</span>
+              <TokenAmount amount={previewPayout} className="text-lg" />
+            </div>
             {userBalance !== null && (
-              <span>Your balance: <TokenAmount amount={userBalance} /></span>
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <span className="text-text-secondary">Your balance</span>
+                <TokenAmount amount={userBalance} />
+              </div>
             )}
           </div>
+
           {error && <p className="mb-4 text-sm text-accent-red">{error}</p>}
-          <Button onClick={handlePlaceBet} disabled={placing || betAmount < 1} className="w-full">
-            {placing ? 'Placing...' : `Place ${betSide.toUpperCase()} bet`}
+          <Button onClick={handlePlaceBet} disabled={placing || betAmount < 1} className="w-full" size="lg">
+            {placing ? 'Placing...' : `Place ${betSide.toUpperCase()} Bet`}
           </Button>
         </Card>
       )}
 
       {isTarget && isActive && (
-        <div className="mb-6 rounded-xl border border-accent-amber/30 bg-accent-amber/5 p-4 text-sm text-accent-amber">
-          You are the target of this market and cannot place bets.
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent-amber/30 bg-accent-amber/5 p-4">
+          <svg className="h-5 w-5 flex-shrink-0 text-accent-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span className="text-sm text-accent-amber">You are the target of this market and cannot place bets.</span>
         </div>
       )}
 
+      {/* Bets list */}
       <div>
-        <h3 className="mb-3 text-lg font-semibold text-text-primary">Bets ({bets.length})</h3>
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-text-primary">
+          <svg className="h-5 w-5 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Bets ({bets.length})
+        </h3>
         {bets.length === 0 ? (
-          <p className="text-sm text-text-tertiary">No bets yet.</p>
+          <Card className="text-center">
+            <p className="py-4 text-sm text-text-tertiary">No bets yet. Be the first!</p>
+          </Card>
         ) : (
           <div className="space-y-2">
             {bets.map((bet) => (
-              <div key={bet.id} className="flex items-center justify-between rounded-lg border border-border bg-bg-surface px-4 py-3">
-                <div>
-                  <span className="text-text-primary">{bet.display_name}</span>
-                  <StatusBadge status={bet.side} className="ml-2" />
+              <div key={bet.id} className="flex items-center justify-between rounded-xl border border-border bg-bg-surface px-5 py-3.5 transition-colors hover:bg-bg-hover">
+                <div className="flex items-center gap-3">
+                  <span className="text-text-primary font-medium">{bet.display_name}</span>
+                  <StatusBadge status={bet.side} />
                 </div>
-                <TokenAmount amount={bet.amount} className="text-sm" />
+                <TokenAmount amount={bet.amount} />
               </div>
             ))}
           </div>

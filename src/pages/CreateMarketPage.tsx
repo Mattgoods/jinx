@@ -90,57 +90,67 @@ export function CreateMarketPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md py-6">
+    <div className="mx-auto max-w-md">
       <PageHeader title="New Market" backTo={`/group/${groupId}`} backLabel="Group" />
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField
-          as="select"
-          label="Target Person"
-          id="target"
-          value={targetUserId}
-          onChange={(e) => setTargetUserId(e.target.value)}
-          error={fieldErrors.target}
-          required
-        >
-          <option value="">{loadingMembers ? 'Loading members...' : 'Select a person...'}</option>
-          {members.map((m) => (
-            <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
-          ))}
-        </FormField>
-        <FormField
-          label="Secret Word"
-          id="secret-word"
-          type="text"
-          value={secretWord}
-          onChange={(e) => setSecretWord(e.target.value)}
-          placeholder="e.g., synergy"
-          maxLength={50}
-          error={fieldErrors.secretWord}
-          required
-        />
-        <FormField
-          label="Window Start"
-          id="window-start"
-          type="datetime-local"
-          value={windowStart}
-          onChange={(e) => setWindowStart(e.target.value)}
-          error={fieldErrors.windowStart}
-          required
-        />
-        <FormField
-          label="Window End"
-          id="window-end"
-          type="datetime-local"
-          value={windowEnd}
-          onChange={(e) => setWindowEnd(e.target.value)}
-          error={fieldErrors.windowEnd}
-          required
-        />
-        {error && <p className="text-sm text-accent-red">{error}</p>}
-        <Button type="submit" disabled={submitting} className="w-full">
-          {submitting ? 'Creating...' : 'Create Market'}
-        </Button>
-      </form>
+      <div className="rounded-2xl border border-border bg-bg-surface p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-amber/10">
+            <svg className="h-5 w-5 text-accent-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <p className="text-sm text-text-secondary">Set up a prediction market for your group.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <FormField
+            as="select"
+            label="Target Person"
+            id="target"
+            value={targetUserId}
+            onChange={(e) => setTargetUserId(e.target.value)}
+            error={fieldErrors.target}
+            required
+          >
+            <option value="">{loadingMembers ? 'Loading members...' : 'Select a person...'}</option>
+            {members.map((m) => (
+              <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
+            ))}
+          </FormField>
+          <FormField
+            label="Secret Word"
+            id="secret-word"
+            type="text"
+            value={secretWord}
+            onChange={(e) => setSecretWord(e.target.value)}
+            placeholder="e.g., synergy"
+            maxLength={50}
+            error={fieldErrors.secretWord}
+            required
+          />
+          <FormField
+            label="Window Start"
+            id="window-start"
+            type="datetime-local"
+            value={windowStart}
+            onChange={(e) => setWindowStart(e.target.value)}
+            error={fieldErrors.windowStart}
+            required
+          />
+          <FormField
+            label="Window End"
+            id="window-end"
+            type="datetime-local"
+            value={windowEnd}
+            onChange={(e) => setWindowEnd(e.target.value)}
+            error={fieldErrors.windowEnd}
+            required
+          />
+          {error && <p className="text-sm text-accent-red">{error}</p>}
+          <Button type="submit" disabled={submitting} className="w-full" size="lg">
+            {submitting ? 'Creating...' : 'Create Market'}
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }

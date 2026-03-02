@@ -17,11 +17,11 @@ export function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) 
   const { container, text } = sizeClasses[size]
 
   if (src) {
-    return <img src={src} alt="" className={`${container} rounded-full ${className}`} />
+    return <img src={src} alt="" className={`${container} rounded-full ring-2 ring-border ${className}`} />
   }
 
   return (
-    <div className={`flex ${container} items-center justify-center rounded-full bg-bg-hover ${text} text-text-secondary ${className}`}>
+    <div className={`flex ${container} items-center justify-center rounded-full bg-accent-green/20 ${text} font-semibold text-accent-green ${className}`}>
       {name.charAt(0).toUpperCase()}
     </div>
   )

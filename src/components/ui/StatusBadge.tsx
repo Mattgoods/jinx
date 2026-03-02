@@ -1,10 +1,10 @@
 type BadgeVariant = 'green' | 'amber' | 'red' | 'neutral'
 
 const variantClasses: Record<BadgeVariant, string> = {
-  green: 'bg-accent-green/15 text-accent-green',
-  amber: 'bg-accent-amber/15 text-accent-amber',
-  red: 'bg-accent-red/15 text-accent-red',
-  neutral: 'bg-border text-text-tertiary',
+  green: 'bg-accent-green/15 text-accent-green border border-accent-green/20',
+  amber: 'bg-accent-amber/15 text-accent-amber border border-accent-amber/20',
+  red: 'bg-accent-red/15 text-accent-red border border-accent-red/20',
+  neutral: 'bg-border text-text-tertiary border border-border',
 }
 
 const statusToVariant: Record<string, BadgeVariant> = {

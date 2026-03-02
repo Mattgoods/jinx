@@ -34,7 +34,7 @@ describe('Button', () => {
     render(<Button variant="ghost">Ghost</Button>)
     const btn = screen.getByRole('button')
     expect(btn.className).toContain('border')
-    expect(btn.className).toContain('bg-transparent')
+    expect(btn.className).toContain('bg-bg-surface')
   })
 
   it('applies size classes', () => {

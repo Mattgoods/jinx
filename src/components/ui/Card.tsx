@@ -12,6 +12,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   animate?: boolean
   glow?: GlowVariant
   padding?: 'sm' | 'md' | 'lg'
+  hover?: boolean
 }
 
 const paddingClasses = {
@@ -20,10 +21,10 @@ const paddingClasses = {
   lg: 'p-6',
 }
 
-export function Card({ children, animate = false, glow, padding = 'md', className = '', ...rest }: CardProps) {
+export function Card({ children, animate = false, glow, padding = 'md', hover = false, className = '', ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-border bg-bg-surface ${paddingClasses[padding]} ${animate ? 'card-enter' : ''} ${glow ? glowClasses[glow] : ''} ${className}`}
+      className={`rounded-xl border border-border bg-bg-surface ${paddingClasses[padding]} ${animate ? 'card-enter' : ''} ${glow ? glowClasses[glow] : ''} ${hover ? 'casino-card cursor-pointer' : ''} ${className}`}
       {...rest}
     >
       {children}

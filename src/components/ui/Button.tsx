@@ -5,15 +5,15 @@ type ButtonVariant = 'primary' | 'danger' | 'ghost'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-accent-green text-white hover:bg-accent-green/90',
-  danger: 'bg-accent-red text-white hover:bg-accent-red/90',
-  ghost: 'border border-border bg-transparent text-text-secondary hover:bg-bg-hover',
+  primary: 'bg-accent-green text-bg-primary hover:brightness-110 shadow-[0_0_12px_rgba(0,231,1,0.25)]',
+  danger: 'bg-accent-red text-white hover:brightness-110 shadow-[0_0_12px_rgba(237,65,99,0.25)]',
+  ghost: 'border border-border bg-bg-surface text-text-secondary hover:bg-bg-hover hover:text-text-primary hover:border-text-tertiary',
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3',
+  lg: 'px-6 py-3 text-base',
 }
 
 interface ButtonBaseProps {
