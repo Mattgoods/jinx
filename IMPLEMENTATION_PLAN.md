@@ -308,6 +308,17 @@ Spec: `specs/10-payout-reconciliation.md`
 
 ---
 
+### Phase 12.4 — Resolved Market Payout & Resolution Display ✅
+- **Problem:** MarketDetailPage showed no visual indication of resolution outcome or payout results. Bet list only displayed bet amounts, not payouts/P&L. No banner for cancelled markets. Specs 03 and 06 require "past resolved markets browsable with full details including the secret word, final odds, resolution, and payouts."
+- **Fix:** Enhanced MarketDetailPage with three new UI elements:
+  - **Resolution outcome banner:** Prominent colored banner for resolved markets showing "Resolved: YES" (green) or "Resolved: NO" (red) with contextual message (e.g., "Alice said the secret word. YES bets win.")
+  - **Cancelled market banner:** Neutral banner showing "Market Cancelled — All bets have been refunded to their original bettors."
+  - **Payout P/L in bet list:** For resolved/cancelled markets, each bet row now shows P/L next to the wagered amount — green for positive, red for negative, dimmed for zero. Uses `toLocaleString()` for comma-formatted numbers.
+- 10 unit tests covering resolution banners (YES/NO), cancelled banner, payout P/L display, no-P/L for active bets, target warning, REDACTED word, and loading state
+- 107 tests total across 13 test files (all passing)
+
+---
+
 ## Remaining Work
 
 ### Phase 1.2 — Apply migration to Supabase
@@ -329,6 +340,6 @@ Spec: `specs/10-payout-reconciliation.md`
 - **Countdown timer:** `CountdownTimer` component accepts `targetDate` (ISO string), auto-updates every second. Applies `countdown-urgent` CSS class when remaining time < `urgentThresholdMs` (default 1h). Uses JetBrains Mono. Exported from barrel `src/components/ui/index.ts`.
 - **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
 - **Betting history:** `GET /api/users/bets` (dispatched via `?action=bets` on `users/index.ts`) returns full bet history with market + group details. Optional `?groupId=` filter. Rewrite in `vercel.json`. Frontend page at `/bets` with group filter dropdown, summary stats, and clickable bet cards linking to market detail.
-- **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
+- **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test. MarketDetailPage tests mock `useParams`, `useApiClient`, `useToast`, and `CountdownTimer`.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.
 - **Casino UI theme:** Stake.us-inspired dark teal-navy palette (`#0F212E` bg, `#1A2C38` surface, `#00E701` neon green accent). Sidebar navigation replaces top nav bar (fixed on desktop, slide-over on mobile). `Card` supports `hover` prop for casino-card lift effect. `TokenAmount` uses `toLocaleString()` for comma-separated number formatting, supports `animate` prop for count up/down with ease-out cubic easing via `useAnimatedNumber` hook. All pages use `stat-card-*` gradient classes for stat displays. `AppLayout` uses `Promise.resolve().then()` pattern for setState-in-useEffect to satisfy `react-hooks/set-state-in-effect` lint rule.
