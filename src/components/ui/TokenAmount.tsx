@@ -1,10 +1,15 @@
+import { useAnimatedNumber } from './useAnimatedNumber'
+
 interface TokenAmountProps {
   amount: number
   className?: string
   showIcon?: boolean
+  animate?: boolean
 }
 
-export function TokenAmount({ amount, className = '', showIcon = false }: TokenAmountProps) {
+export function TokenAmount({ amount, className = '', showIcon = false, animate = false }: TokenAmountProps) {
+  const displayAmount = useAnimatedNumber(amount, animate ? 500 : 0)
+
   return (
     <span className={`inline-flex items-center gap-1 font-mono font-semibold text-accent-amber ${className}`}>
       {showIcon && (
@@ -14,7 +19,7 @@ export function TokenAmount({ amount, className = '', showIcon = false }: TokenA
           <text x="10" y="14" textAnchor="middle" fontSize="10" fill="var(--color-bg-primary)" fontWeight="bold">$</text>
         </svg>
       )}
-      {amount.toLocaleString()}
+      {displayAmount.toLocaleString()}
     </span>
   )
 }

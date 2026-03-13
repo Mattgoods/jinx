@@ -238,6 +238,72 @@ A social prediction market where friends bet fake currency on whether someone wi
   - **Test updates**: 2 test expectations updated to match new styling (ghost button `bg-bg-surface`, TokenAmount `toLocaleString` formatting)
   - All 88 tests passing, ESLint clean, TypeScript clean, build succeeds
 
+### Phase 11.1 — Token Amount Animation ✅
+- **Problem:** Token amounts displayed as static numbers with no visual feedback when values changed (e.g., after bet placement, resolution, or token distribution). Spec 07 requires "Token amount: Count up/down with easing."
+- **Fix:** Created `useAnimatedNumber` hook and added `animate` prop to `TokenAmount` component:
+  - **`useAnimatedNumber` hook** (`src/components/ui/useAnimatedNumber.ts`):
+    - Uses `requestAnimationFrame` for smooth 60fps animation
+    - Ease-out cubic easing function for natural deceleration
+    - Cancels in-flight animation when target changes mid-animation
+    - Returns initial value immediately on first render (no animation from 0)
+    - Handles `duration=0` via `Promise.resolve().then()` pattern (satisfies `react-hooks/set-state-in-effect` lint rule)
+  - **`TokenAmount` component** updated with optional `animate` prop (default `false`):
+    - When `animate={true}`, numbers count up/down smoothly over 500ms when the value changes
+    - When `animate={false}` (default), behaves identically to before — no animation overhead
+  - **Applied `animate` to dynamic displays:**
+    - `AppLayout` — token balance pill in top bar (updates after bet placement)
+    - `MarketDetailPage` — pool total, payout preview, user balance (update after bet)
+    - `Dashboard` — group token balance cards
+  - **Static displays left unchanged:** Bet history amounts, bet list items, leaderboard values
+  - Exported `useAnimatedNumber` from barrel `src/components/ui/index.ts`
+  - 7 new tests for `useAnimatedNumber` + 2 new tests for `TokenAmount` animate prop (97 tests total across 12 test files, all passing)
+
+---
+
+## Phase 12 — Bug Fixes
+
+### 12.1 — Atomic Market Resolution Payouts ✅
+Spec: `specs/09-payout-resolution.md`
+- [x] Created `resolve_market` RPC function in `supabase/migrations/002_resolve_market_rpc.sql`
+  - Uses `SELECT ... FOR UPDATE` on the market row to prevent double-resolution races
+  - Validates market is in `active` or `pending_resolution` status
+  - Validates time window has closed (`window_end < now()`)
+  - Updates market status + `resolved_at` atomically
+  - Calculates payouts: `floor(bet_amount::numeric / winning_pool * total_pool)` for winners
+  - Sets losing bets' `payout` to `0` (not NULL)
+  - Credits winners' `group_members.token_balance` via UPDATE
+  - Handles edge cases: empty market (0 bets), one-sided markets, winning pool = 0
+  - All steps roll back entirely on any failure — no partial payouts
+- [x] Updated `api/markets/resolve.ts` to call single `resolve_market` RPC instead of multiple separate DB operations
+  - Auth + authorization checks (Clerk token, creator-only) remain in the API layer
+  - RPC exceptions mapped to appropriate HTTP error responses
+  - Response format preserved for frontend compatibility
+
+### 12.2 — Reconcile Pre-Fix Missing Payouts
+Spec: `specs/10-payout-reconciliation.md`
+- [ ] Create `supabase/migrations/003_reconcile_payouts.sql` one-time reconciliation migration
+  - Find resolved markets with NULL-payout winning bets
+  - Calculate payouts using same formula as `resolve_market` RPC
+  - Credit winners' `group_members.token_balance`
+  - Set all remaining NULL payouts to 0
+  - Idempotent — safe to run multiple times
+- [ ] Run migration against Supabase and verify results
+
+### 12.3 — Atomic Market Cancellation ✅
+- **Problem:** `api/markets/cancel.ts` used sequential JS loop with separate Supabase calls (update status, then loop bets: update payout + increment_balance per bet). If any call failed mid-loop, market would be marked cancelled but some bets not refunded — balance/status divergence. Violated AGENTS.md rule: "Token-affecting operations must be atomic PostgreSQL transactions (RPC functions), not sequential Supabase client calls in JS loops."
+- **Fix:** Created atomic `cancel_market` RPC (same pattern as `resolve_market`):
+  - `supabase/migrations/003_cancel_market_rpc.sql`:
+    - `SELECT ... FOR UPDATE` on market row to prevent concurrent cancellation/resolution races
+    - Validates market is not already resolved or cancelled
+    - Updates market status to `cancelled`
+    - Loops all bets with `payout IS NULL`: sets `payout = amount` and credits `group_members.token_balance`
+    - All steps roll back entirely on any failure — no partial refunds
+    - Returns JSON with `market_id`, `status`, `refund_count`, `refund_total`
+  - Updated `api/markets/cancel.ts` to call single `cancel_market` RPC instead of loop
+    - Auth + authorization checks (Clerk token, creator-only) remain in the API layer
+    - RPC exceptions mapped to appropriate HTTP error responses (resolved → 400, already cancelled → 400, not found → 404)
+    - Response format preserved for frontend compatibility
+
 ---
 
 ## Remaining Work
@@ -245,9 +311,6 @@ A social prediction market where friends bet fake currency on whether someone wi
 ### Phase 1.2 — Apply migration to Supabase
 - Run `supabase db push` against the target Supabase project
 - Verify all tables, indexes, RLS policies, and RPC functions exist
-
-### Future Enhancements
-- Token amounts count up/down with easing on bet placement and resolution (spec 07)
 
 ---
 
@@ -266,4 +329,4 @@ A social prediction market where friends bet fake currency on whether someone wi
 - **Betting history:** `GET /api/users/bets` (dispatched via `?action=bets` on `users/index.ts`) returns full bet history with market + group details. Optional `?groupId=` filter. Rewrite in `vercel.json`. Frontend page at `/bets` with group filter dropdown, summary stats, and clickable bet cards linking to market detail.
 - **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.
-- **Casino UI theme:** Stake.us-inspired dark teal-navy palette (`#0F212E` bg, `#1A2C38` surface, `#00E701` neon green accent). Sidebar navigation replaces top nav bar (fixed on desktop, slide-over on mobile). `Card` supports `hover` prop for casino-card lift effect. `TokenAmount` uses `toLocaleString()` for comma-separated number formatting. All pages use `stat-card-*` gradient classes for stat displays. `AppLayout` uses `Promise.resolve().then()` pattern for setState-in-useEffect to satisfy `react-hooks/set-state-in-effect` lint rule.
+- **Casino UI theme:** Stake.us-inspired dark teal-navy palette (`#0F212E` bg, `#1A2C38` surface, `#00E701` neon green accent). Sidebar navigation replaces top nav bar (fixed on desktop, slide-over on mobile). `Card` supports `hover` prop for casino-card lift effect. `TokenAmount` uses `toLocaleString()` for comma-separated number formatting, supports `animate` prop for count up/down with ease-out cubic easing via `useAnimatedNumber` hook. All pages use `stat-card-*` gradient classes for stat displays. `AppLayout` uses `Promise.resolve().then()` pattern for setState-in-useEffect to satisfy `react-hooks/set-state-in-effect` lint rule.

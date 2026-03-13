@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: validationError } })
     }
 
-    // Get market
+    // Get market for auth check (creator-only)
     const { data: market, error: marketError } = await supabase
       .from('markets')
       .select('*')
@@ -36,62 +36,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only the creator can resolve this market' } })
     }
 
-    // Market must be active or pending_resolution
-    if (!['active', 'pending_resolution'].includes(market.status)) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Market is not resolvable' } })
-    }
+    // Call the atomic resolve_market RPC — handles status validation,
+    // window check, payout calculation, and balance credits in one transaction
+    const { error: rpcError } = await supabase.rpc('resolve_market', {
+      p_market_id: marketId,
+      p_outcome: outcome,
+    })
 
-    // Window must have closed
-    if (new Date(market.window_end) > new Date()) {
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Cannot resolve before the time window closes' } })
-    }
-
-    // Get all bets
-    const { data: bets } = await supabase
-      .from('bets')
-      .select('*')
-      .eq('market_id', marketId)
-
-    const allBets = bets || []
-
-    // Calculate payouts
-    const winningPool = outcome === 'yes' ? market.yes_pool : market.no_pool
-    const totalPool = market.total_pool
-
-    const payouts: Array<{ betId: string; userId: string; payout: number }> = []
-
-    for (const bet of allBets) {
-      let payout = 0
-      if (bet.side === outcome && winningPool > 0) {
-        payout = Math.floor((bet.amount / winningPool) * totalPool)
+    if (rpcError) {
+      // Map RPC exceptions to appropriate HTTP responses
+      const msg = rpcError.message
+      if (msg.includes('not found')) {
+        return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Market not found' } })
       }
-      payouts.push({ betId: bet.id, userId: bet.user_id, payout })
+      if (msg.includes('not resolvable')) {
+        return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Market is not resolvable' } })
+      }
+      if (msg.includes('time window')) {
+        return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Cannot resolve before the time window closes' } })
+      }
+      console.error('resolve_market RPC error:', rpcError)
+      return res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } })
     }
 
-    // Update market status
+    // Fetch the updated market to return to the client
     const newStatus = outcome === 'yes' ? 'resolved_yes' : 'resolved_no'
-    await supabase
-      .from('markets')
-      .update({ status: newStatus, resolved_at: new Date().toISOString() })
-      .eq('id', marketId)
-
-    // Update each bet's payout and credit winners
-    for (const p of payouts) {
-      await supabase
-        .from('bets')
-        .update({ payout: p.payout })
-        .eq('id', p.betId)
-
-      if (p.payout > 0) {
-        await supabase.rpc('increment_balance', {
-          p_user_id: p.userId,
-          p_group_id: market.group_id,
-          p_amount: p.payout,
-        })
-      }
-    }
-
-    return res.status(200).json({ data: { market: { ...market, status: newStatus }, payouts } })
+    return res.status(200).json({ data: { market: { ...market, status: newStatus } } })
   } catch (err) {
     if (err instanceof AuthError) {
       return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: err.message } })

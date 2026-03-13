@@ -72,7 +72,7 @@ export function Dashboard() {
               <div className="mb-4 flex items-center gap-2">
                 <div className="online-dot" />
                 <span className="text-sm text-text-secondary">Balance:</span>
-                <TokenAmount amount={group.token_balance} />
+                <TokenAmount amount={group.token_balance} animate />
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button as="link" to={`/group/${group.group_id}/markets/new`} size="sm" onClick={(e) => e.stopPropagation()}>
