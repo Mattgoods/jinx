@@ -260,6 +260,27 @@ A social prediction market where friends bet fake currency on whether someone wi
 
 ---
 
+## Phase 12 — Bug Fixes
+
+### 12.1 — Atomic Market Resolution Payouts ✅
+Spec: `specs/09-payout-resolution.md`
+- [x] Created `resolve_market` RPC function in `supabase/migrations/002_resolve_market_rpc.sql`
+  - Uses `SELECT ... FOR UPDATE` on the market row to prevent double-resolution races
+  - Validates market is in `active` or `pending_resolution` status
+  - Validates time window has closed (`window_end < now()`)
+  - Updates market status + `resolved_at` atomically
+  - Calculates payouts: `floor(bet_amount::numeric / winning_pool * total_pool)` for winners
+  - Sets losing bets' `payout` to `0` (not NULL)
+  - Credits winners' `group_members.token_balance` via UPDATE
+  - Handles edge cases: empty market (0 bets), one-sided markets, winning pool = 0
+  - All steps roll back entirely on any failure — no partial payouts
+- [x] Updated `api/markets/resolve.ts` to call single `resolve_market` RPC instead of multiple separate DB operations
+  - Auth + authorization checks (Clerk token, creator-only) remain in the API layer
+  - RPC exceptions mapped to appropriate HTTP error responses
+  - Response format preserved for frontend compatibility
+
+---
+
 ## Remaining Work
 
 ### Phase 1.2 — Apply migration to Supabase

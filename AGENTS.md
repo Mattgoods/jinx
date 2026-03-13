@@ -47,6 +47,7 @@ Run these after implementing to get immediate feedback:
 - `react-hooks/set-state-in-effect` lint rule: avoid calling setState synchronously in useEffect; use `.then()` callbacks instead of calling a function that sets state
 - `react-refresh/only-export-components` lint rule: don't export hooks and components from the same file; split into separate modules
 - `@testing-library/user-event` is installed for testing user interactions (e.g. select dropdowns)
+- Token-affecting operations must be atomic PostgreSQL transactions (RPC functions), not sequential Supabase client calls in JS loops — see `place_bet` and `resolve_market` RPCs as the pattern
 
 ## Vercel Deployment
 
