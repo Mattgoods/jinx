@@ -279,14 +279,16 @@ Spec: `specs/09-payout-resolution.md`
   - RPC exceptions mapped to appropriate HTTP error responses
   - Response format preserved for frontend compatibility
 
-### 12.2 — Reconcile Pre-Fix Missing Payouts
+### 12.2 — Reconcile Pre-Fix Missing Payouts ✅
 Spec: `specs/10-payout-reconciliation.md`
-- [ ] Create `supabase/migrations/003_reconcile_payouts.sql` one-time reconciliation migration
-  - Find resolved markets with NULL-payout winning bets
-  - Calculate payouts using same formula as `resolve_market` RPC
-  - Credit winners' `group_members.token_balance`
-  - Set all remaining NULL payouts to 0
-  - Idempotent — safe to run multiple times
+- [x] Created `supabase/migrations/004_reconcile_payouts.sql` one-time reconciliation migration
+  - Finds resolved markets (`resolved_yes`/`resolved_no`) that still have NULL-payout bets via INNER JOIN
+  - Calculates payouts using same formula as `resolve_market` RPC: `floor(bet_amount::numeric / winning_pool * total_pool)`
+  - Credits winners' `group_members.token_balance` per bet
+  - Sets all remaining NULL payouts to 0 (losing side, or winning side with 0 pool)
+  - Idempotent — only processes bets where `payout IS NULL`, second run changes nothing
+  - Handles edge cases: empty markets (not selected), one-sided markets (winning_pool=0 → all zeroed), partial failures (only NULL-payout bets processed)
+  - Logs summary via `RAISE NOTICE` (markets reconciled, bets paid, tokens credited, bets zeroed)
 - [ ] Run migration against Supabase and verify results
 
 ### 12.3 — Atomic Market Cancellation ✅
