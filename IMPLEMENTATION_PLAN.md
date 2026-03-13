@@ -279,6 +279,31 @@ Spec: `specs/09-payout-resolution.md`
   - RPC exceptions mapped to appropriate HTTP error responses
   - Response format preserved for frontend compatibility
 
+### 12.2 — Reconcile Pre-Fix Missing Payouts
+Spec: `specs/10-payout-reconciliation.md`
+- [ ] Create `supabase/migrations/003_reconcile_payouts.sql` one-time reconciliation migration
+  - Find resolved markets with NULL-payout winning bets
+  - Calculate payouts using same formula as `resolve_market` RPC
+  - Credit winners' `group_members.token_balance`
+  - Set all remaining NULL payouts to 0
+  - Idempotent — safe to run multiple times
+- [ ] Run migration against Supabase and verify results
+
+### 12.3 — Atomic Market Cancellation ✅
+- **Problem:** `api/markets/cancel.ts` used sequential JS loop with separate Supabase calls (update status, then loop bets: update payout + increment_balance per bet). If any call failed mid-loop, market would be marked cancelled but some bets not refunded — balance/status divergence. Violated AGENTS.md rule: "Token-affecting operations must be atomic PostgreSQL transactions (RPC functions), not sequential Supabase client calls in JS loops."
+- **Fix:** Created atomic `cancel_market` RPC (same pattern as `resolve_market`):
+  - `supabase/migrations/003_cancel_market_rpc.sql`:
+    - `SELECT ... FOR UPDATE` on market row to prevent concurrent cancellation/resolution races
+    - Validates market is not already resolved or cancelled
+    - Updates market status to `cancelled`
+    - Loops all bets with `payout IS NULL`: sets `payout = amount` and credits `group_members.token_balance`
+    - All steps roll back entirely on any failure — no partial refunds
+    - Returns JSON with `market_id`, `status`, `refund_count`, `refund_total`
+  - Updated `api/markets/cancel.ts` to call single `cancel_market` RPC instead of loop
+    - Auth + authorization checks (Clerk token, creator-only) remain in the API layer
+    - RPC exceptions mapped to appropriate HTTP error responses (resolved → 400, already cancelled → 400, not found → 404)
+    - Response format preserved for frontend compatibility
+
 ---
 
 ## Remaining Work

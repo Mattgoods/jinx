@@ -42,12 +42,14 @@ Run these after implementing to get immediate feedback:
 - Three tsconfig files: `tsconfig.app.json` (src/), `tsconfig.node.json` (vite.config), `tsconfig.api.json` (api/)
 - `tsc -b` builds all three; `tsc --noEmit` alone only checks the files in `tsconfig.app.json` include
 - Supabase RPC functions (`place_bet`, `increment_balance`) are defined in the migration SQL and called via `supabase.rpc()`
+- `resolve_market` and `cancel_market` RPCs handle atomic resolution and cancellation — API layer handles auth/authorization, RPCs handle DB-level validation and transactional integrity
 - ESLint strict no-unused-vars: cannot use `_` prefix for destructured-away props; use object key filtering instead
 - Vitest configured in `vite.config.ts` with `jsdom` environment, setup file at `src/test/setup.ts`
 - `react-hooks/set-state-in-effect` lint rule: avoid calling setState synchronously in useEffect; use `.then()` callbacks instead of calling a function that sets state
 - `react-refresh/only-export-components` lint rule: don't export hooks and components from the same file; split into separate modules
 - `@testing-library/user-event` is installed for testing user interactions (e.g. select dropdowns)
 - Token-affecting operations must be atomic PostgreSQL transactions (RPC functions), not sequential Supabase client calls in JS loops — see `place_bet` and `resolve_market` RPCs as the pattern
+- When fixing payout/balance logic bugs, always check for pre-existing data that was affected by the old broken code path — a code fix alone doesn't retroactively correct already-processed records. Use an idempotent SQL migration to reconcile.
 
 ## Vercel Deployment
 
