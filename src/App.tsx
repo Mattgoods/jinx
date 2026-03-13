@@ -10,7 +10,6 @@ import { JoinGroupPage } from './pages/JoinGroupPage.tsx'
 import { GroupSettingsPage } from './pages/GroupSettingsPage.tsx'
 import { CreateMarketPage } from './pages/CreateMarketPage.tsx'
 import { MarketDetailPage } from './pages/MarketDetailPage.tsx'
-import { ResolveMarketPage } from './pages/ResolveMarketPage.tsx'
 import { LeaderboardPage } from './pages/LeaderboardPage.tsx'
 import { BettingHistoryPage } from './pages/BettingHistoryPage.tsx'
 import { ProfilePage } from './pages/ProfilePage.tsx'
@@ -35,7 +34,6 @@ export function App() {
           <Route path="/group/:groupId/markets/new" element={<CreateMarketPage />} />
           <Route path="/group/:groupId/leaderboard" element={<LeaderboardPage />} />
           <Route path="/markets/:id" element={<MarketDetailPage />} />
-          <Route path="/markets/:id/resolve" element={<ResolveMarketPage />} />
           <Route path="/bets" element={<BettingHistoryPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>

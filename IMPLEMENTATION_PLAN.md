@@ -279,14 +279,16 @@ Spec: `specs/09-payout-resolution.md`
   - RPC exceptions mapped to appropriate HTTP error responses
   - Response format preserved for frontend compatibility
 
-### 12.2 — Reconcile Pre-Fix Missing Payouts
+### 12.2 — Reconcile Pre-Fix Missing Payouts ✅
 Spec: `specs/10-payout-reconciliation.md`
-- [ ] Create `supabase/migrations/003_reconcile_payouts.sql` one-time reconciliation migration
-  - Find resolved markets with NULL-payout winning bets
-  - Calculate payouts using same formula as `resolve_market` RPC
-  - Credit winners' `group_members.token_balance`
-  - Set all remaining NULL payouts to 0
-  - Idempotent — safe to run multiple times
+- [x] Created `supabase/migrations/004_reconcile_payouts.sql` one-time reconciliation migration
+  - Finds resolved markets (`resolved_yes`/`resolved_no`) that still have NULL-payout bets via INNER JOIN
+  - Calculates payouts using same formula as `resolve_market` RPC: `floor(bet_amount::numeric / winning_pool * total_pool)`
+  - Credits winners' `group_members.token_balance` per bet
+  - Sets all remaining NULL payouts to 0 (losing side, or winning side with 0 pool)
+  - Idempotent — only processes bets where `payout IS NULL`, second run changes nothing
+  - Handles edge cases: empty markets (not selected), one-sided markets (winning_pool=0 → all zeroed), partial failures (only NULL-payout bets processed)
+  - Logs summary via `RAISE NOTICE` (markets reconciled, bets paid, tokens credited, bets zeroed)
 - [ ] Run migration against Supabase and verify results
 
 ### 12.3 — Atomic Market Cancellation ✅
@@ -303,6 +305,60 @@ Spec: `specs/10-payout-reconciliation.md`
     - Auth + authorization checks (Clerk token, creator-only) remain in the API layer
     - RPC exceptions mapped to appropriate HTTP error responses (resolved → 400, already cancelled → 400, not found → 404)
     - Response format preserved for frontend compatibility
+
+---
+
+### Phase 12.4 — Resolved Market Payout & Resolution Display ✅
+- **Problem:** MarketDetailPage showed no visual indication of resolution outcome or payout results. Bet list only displayed bet amounts, not payouts/P&L. No banner for cancelled markets. Specs 03 and 06 require "past resolved markets browsable with full details including the secret word, final odds, resolution, and payouts."
+- **Fix:** Enhanced MarketDetailPage with three new UI elements:
+  - **Resolution outcome banner:** Prominent colored banner for resolved markets showing "Resolved: YES" (green) or "Resolved: NO" (red) with contextual message (e.g., "Alice said the secret word. YES bets win.")
+  - **Cancelled market banner:** Neutral banner showing "Market Cancelled — All bets have been refunded to their original bettors."
+  - **Payout P/L in bet list:** For resolved/cancelled markets, each bet row now shows P/L next to the wagered amount — green for positive, red for negative, dimmed for zero. Uses `toLocaleString()` for comma-formatted numbers.
+- 10 unit tests covering resolution banners (YES/NO), cancelled banner, payout P/L display, no-P/L for active bets, target warning, REDACTED word, and loading state
+- 107 tests total across 13 test files (all passing)
+
+### 12.5 — Fix resolve_market RPC for One-Sided Markets ✅
+Spec: `specs/11-resolve-payout-bug.md`
+- [x] Extract current `resolve_market` RPC source from Supabase, commit to migrations folder
+  - Previous migrations (001-004) were already deleted from repo; original RPC was in `002_resolve_market_rpc.sql`
+- [x] Audit RPC for one-sided market edge case bugs (winning_pool=0 division, losing_pool=0 handling, balance credit JOIN)
+  - Three bugs identified: (1) balance credit JOIN missing group_id, (2) no guard for winning_pool=0, (3) losing bets left as NULL payout
+- [x] Fix `resolve_market` RPC to correctly handle: sole bettor wins, one-sided winning, one-sided losing
+  - Created `supabase/migrations/005_fix_resolve_market_rpc.sql` — `CREATE OR REPLACE FUNCTION` with:
+    - Explicit guards for `winning_pool = 0` (all payouts = 0) and `losing_pool = 0` (each winner gets bet back)
+    - Balance credit JOIN uses BOTH `user_id` AND `group_id` (fixes multi-group bug)
+    - YES/NO outcome fully symmetric via parameterized `winning_side`
+    - All losing bets explicitly set to `payout = 0` (not NULL)
+    - 0-bet market handled cleanly (status updates, no payout ops)
+- [x] Create new reconciliation migration `supabase/migrations/008_reconcile_one_sided_payouts.sql` for affected data
+  - Idempotent: only processes bets where `payout IS NULL`
+  - CTE-based credit logic prevents double-crediting on partial re-runs
+  - Self-verifying: raises exception if any NULL-payout bets remain after reconciliation
+- [ ] Run migrations against Supabase (005 then 008), verify Seth's balance and all resolved markets have non-NULL payouts
+- [ ] Mark Task 12.2 reconciliation subtask as complete if `004_reconcile_payouts.sql` is also run
+
+### Phase 12.6 — Target-Only Market Resolution with Modal ✅
+Spec: `specs/12-target-resolves-market.md`
+- [x] Update `api/markets/resolve.ts` to authorize `target_user_id` instead of `creator_id`
+- [x] Add API query support for fetching pending-resolution markets targeting the current user (use existing endpoint with filter to stay within 12-function limit)
+  - Added `handlePendingResolution` handler in `api/markets/index.ts` dispatched via `?action=pending-resolution`
+  - Vercel rewrite: `/api/markets/pending-resolution` → `/api/markets?action=pending-resolution` (no new function file)
+  - Lazy-transitions active markets past `window_end` to `pending_resolution` before querying
+  - Returns pending markets with secret word revealed (window is closed)
+- [x] Create `ResolutionModal` component — full-screen blocking overlay with YES/NO buttons, no dismiss
+  - `src/components/ResolutionModal.tsx` — modal with `z-[100]`, `aria-modal="true"`, no close button
+  - Shows secret word, pool amount, counter for multiple pending markets
+  - Sequential resolution: resolving one shows the next pending market immediately
+- [x] Add resolution modal trigger in `AppLayout` — fetches pending markets on load/route change, shows modal if any found
+  - `ResolutionModal` imported into `AppLayout.tsx`, rendered alongside page content
+  - Fetches `/api/markets/pending-resolution` on mount and on `location.pathname` change
+- [x] Update `MarketDetailPage` — removed old "Resolve market" link; shows "You will be prompted to resolve" for target on pending markets, "Waiting for [target name] to resolve" for others
+- [x] Remove `/markets/:id/resolve` route from `App.tsx` (ResolveMarketPage import removed)
+  - `ResolveMarketPage` file retained but unused — can be deleted in cleanup
+- [x] Add tests for ResolutionModal (rendering, non-dismissable, sequential resolution)
+  - 10 tests in `src/components/ResolutionModal.test.tsx`: empty state, modal rendering, no close button, YES/NO buttons, resolve YES/NO with toast, multiple market counter, sequential resolution, pool display, error handling
+  - 3 new tests in `MarketDetailPage.test.tsx`: waiting message for non-target, prompted message for target, no messages on active
+  - 120 tests total across 14 test files (all passing)
 
 ---
 
@@ -327,6 +383,7 @@ Spec: `specs/10-payout-reconciliation.md`
 - **Countdown timer:** `CountdownTimer` component accepts `targetDate` (ISO string), auto-updates every second. Applies `countdown-urgent` CSS class when remaining time < `urgentThresholdMs` (default 1h). Uses JetBrains Mono. Exported from barrel `src/components/ui/index.ts`.
 - **Toast system:** `ToastProvider` wraps the app in `App.tsx`. Use `useToast()` hook to get `addToast(message, variant?)`. Files split across `Toast.tsx`, `ToastContext.ts`, `useToast.ts` to satisfy `react-refresh/only-export-components` lint rule.
 - **Betting history:** `GET /api/users/bets` (dispatched via `?action=bets` on `users/index.ts`) returns full bet history with market + group details. Optional `?groupId=` filter. Rewrite in `vercel.json`. Frontend page at `/bets` with group filter dropdown, summary stats, and clickable bet cards linking to market detail.
-- **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test.
+- **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test. MarketDetailPage tests mock `useParams`, `useApiClient`, `useToast`, and `CountdownTimer`.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.
 - **Casino UI theme:** Stake.us-inspired dark teal-navy palette (`#0F212E` bg, `#1A2C38` surface, `#00E701` neon green accent). Sidebar navigation replaces top nav bar (fixed on desktop, slide-over on mobile). `Card` supports `hover` prop for casino-card lift effect. `TokenAmount` uses `toLocaleString()` for comma-separated number formatting, supports `animate` prop for count up/down with ease-out cubic easing via `useAnimatedNumber` hook. All pages use `stat-card-*` gradient classes for stat displays. `AppLayout` uses `Promise.resolve().then()` pattern for setState-in-useEffect to satisfy `react-hooks/set-state-in-effect` lint rule.
+- **Resolution authority:** Only the market target (`target_user_id`) can resolve, not the creator. Authorization is in `api/markets/resolve.ts` (API layer), not the RPC. `ResolutionModal` in `AppLayout` fetches pending-resolution markets via `GET /api/markets/pending-resolution` (rewrite to `?action=pending-resolution` on `markets/index.ts`) on load and route changes — shows blocking full-screen modal with no close button. `ResolveMarketPage` and its route are removed.

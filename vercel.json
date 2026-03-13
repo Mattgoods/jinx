@@ -2,6 +2,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/markets/detail", "destination": "/api/markets?action=detail" },
+    { "source": "/api/markets/pending-resolution", "destination": "/api/markets?action=pending-resolution" },
     { "source": "/api/groups/detail", "destination": "/api/groups/manage?action=detail" },
     { "source": "/api/groups/create", "destination": "/api/groups/manage?action=create" },
     { "source": "/api/groups/join", "destination": "/api/groups/manage?action=join" },

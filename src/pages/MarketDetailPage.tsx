@@ -159,18 +159,58 @@ export function MarketDetailPage() {
           )}
         </div>
 
-        {(market.status === 'active' || market.status === 'pending_resolution') && (
-          <Link
-            to={`/markets/${market.id}/resolve`}
-            className="mt-4 inline-flex items-center gap-1 text-sm text-text-tertiary transition-colors hover:text-accent-green"
-          >
+        {market.status === 'pending_resolution' && isTarget && (
+          <p className="mt-4 inline-flex items-center gap-1 text-sm text-accent-green">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Resolve market
-          </Link>
+            You will be prompted to resolve this market
+          </p>
+        )}
+
+        {market.status === 'pending_resolution' && !isTarget && (
+          <p className="mt-4 inline-flex items-center gap-1 text-sm text-text-tertiary">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Waiting for {market.target_display_name} to resolve
+          </p>
         )}
       </Card>
+
+      {/* Resolution outcome banner */}
+      {(market.status === 'resolved_yes' || market.status === 'resolved_no') && (
+        <div className={`mb-6 flex items-center gap-3 rounded-xl border p-4 ${
+          market.status === 'resolved_yes'
+            ? 'border-accent-green/30 bg-accent-green/5'
+            : 'border-accent-red/30 bg-accent-red/5'
+        }`}>
+          <svg className={`h-5 w-5 flex-shrink-0 ${market.status === 'resolved_yes' ? 'text-accent-green' : 'text-accent-red'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className={`font-bold ${market.status === 'resolved_yes' ? 'text-accent-green' : 'text-accent-red'}`}>
+              Resolved: {market.status === 'resolved_yes' ? 'YES' : 'NO'}
+            </p>
+            <p className="text-sm text-text-secondary">
+              {market.target_display_name} {market.status === 'resolved_yes' ? 'said' : 'did not say'} the secret word. {market.status === 'resolved_yes' ? 'YES' : 'NO'} bets win.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Cancelled market banner */}
+      {market.status === 'cancelled' && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-bg-surface p-4">
+          <svg className="h-5 w-5 flex-shrink-0 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+          <div>
+            <p className="font-bold text-text-primary">Market Cancelled</p>
+            <p className="text-sm text-text-secondary">All bets have been refunded to their original bettors.</p>
+          </div>
+        </div>
+      )}
 
       {/* Bet placement card */}
       {canBet && (
@@ -267,15 +307,26 @@ export function MarketDetailPage() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {bets.map((bet) => (
-              <div key={bet.id} className="flex items-center justify-between rounded-xl border border-border bg-bg-surface px-5 py-3.5 transition-colors hover:bg-bg-hover">
-                <div className="flex items-center gap-3">
-                  <span className="text-text-primary font-medium">{bet.display_name}</span>
-                  <StatusBadge status={bet.side} />
+            {bets.map((bet) => {
+              const isResolved = market.status === 'resolved_yes' || market.status === 'resolved_no' || market.status === 'cancelled'
+              const pl = bet.payout !== null ? bet.payout - bet.amount : null
+              return (
+                <div key={bet.id} className="flex items-center justify-between rounded-xl border border-border bg-bg-surface px-5 py-3.5 transition-colors hover:bg-bg-hover">
+                  <div className="flex items-center gap-3">
+                    <span className="text-text-primary font-medium">{bet.display_name}</span>
+                    <StatusBadge status={bet.side} />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <TokenAmount amount={bet.amount} />
+                    {isResolved && pl !== null && (
+                      <span className={`font-mono text-sm font-semibold ${pl > 0 ? 'text-accent-green' : pl < 0 ? 'text-accent-red' : 'text-text-tertiary'}`}>
+                        {pl > 0 ? '+' : ''}{pl.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <TokenAmount amount={bet.amount} />
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

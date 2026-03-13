@@ -15,7 +15,7 @@ Run these after implementing to get immediate feedback:
 - Typecheck (no emit): `npx tsc --noEmit` only checks `src/`, use `tsc -b` for full check including `api/`
 - Lint: `npx eslint .` (config in `eslint.config.js`, covers `**/*.{ts,tsx}`)
 - Build: `npm run build` (runs `tsc -b && vite build`)
-- Tests: `npx vitest run` (88 tests for UI components and pages)
+- Tests: `npx vitest run` (107 tests for UI components and pages)
 
 ## Project Structure
 
