@@ -317,6 +317,26 @@ Spec: `specs/10-payout-reconciliation.md`
 - 10 unit tests covering resolution banners (YES/NO), cancelled banner, payout P/L display, no-P/L for active bets, target warning, REDACTED word, and loading state
 - 107 tests total across 13 test files (all passing)
 
+### 12.5 — Fix resolve_market RPC for One-Sided Markets ✅
+Spec: `specs/11-resolve-payout-bug.md`
+- [x] Extract current `resolve_market` RPC source from Supabase, commit to migrations folder
+  - Previous migrations (001-004) were already deleted from repo; original RPC was in `002_resolve_market_rpc.sql`
+- [x] Audit RPC for one-sided market edge case bugs (winning_pool=0 division, losing_pool=0 handling, balance credit JOIN)
+  - Three bugs identified: (1) balance credit JOIN missing group_id, (2) no guard for winning_pool=0, (3) losing bets left as NULL payout
+- [x] Fix `resolve_market` RPC to correctly handle: sole bettor wins, one-sided winning, one-sided losing
+  - Created `supabase/migrations/005_fix_resolve_market_rpc.sql` — `CREATE OR REPLACE FUNCTION` with:
+    - Explicit guards for `winning_pool = 0` (all payouts = 0) and `losing_pool = 0` (each winner gets bet back)
+    - Balance credit JOIN uses BOTH `user_id` AND `group_id` (fixes multi-group bug)
+    - YES/NO outcome fully symmetric via parameterized `winning_side`
+    - All losing bets explicitly set to `payout = 0` (not NULL)
+    - 0-bet market handled cleanly (status updates, no payout ops)
+- [x] Create new reconciliation migration `supabase/migrations/008_reconcile_one_sided_payouts.sql` for affected data
+  - Idempotent: only processes bets where `payout IS NULL`
+  - CTE-based credit logic prevents double-crediting on partial re-runs
+  - Self-verifying: raises exception if any NULL-payout bets remain after reconciliation
+- [ ] Run migrations against Supabase (005 then 008), verify Seth's balance and all resolved markets have non-NULL payouts
+- [ ] Mark Task 12.2 reconciliation subtask as complete if `004_reconcile_payouts.sql` is also run
+
 ---
 
 ## Remaining Work
