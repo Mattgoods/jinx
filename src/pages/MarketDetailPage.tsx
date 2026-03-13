@@ -159,16 +159,22 @@ export function MarketDetailPage() {
           )}
         </div>
 
-        {(market.status === 'active' || market.status === 'pending_resolution') && (
-          <Link
-            to={`/markets/${market.id}/resolve`}
-            className="mt-4 inline-flex items-center gap-1 text-sm text-text-tertiary transition-colors hover:text-accent-green"
-          >
+        {market.status === 'pending_resolution' && isTarget && (
+          <p className="mt-4 inline-flex items-center gap-1 text-sm text-accent-green">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Resolve market
-          </Link>
+            You will be prompted to resolve this market
+          </p>
+        )}
+
+        {market.status === 'pending_resolution' && !isTarget && (
+          <p className="mt-4 inline-flex items-center gap-1 text-sm text-text-tertiary">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Waiting for {market.target_display_name} to resolve
+          </p>
         )}
       </Card>
 

@@ -179,4 +179,36 @@ describe('MarketDetailPage', () => {
       expect(screen.getByText('REDACTED')).toBeInTheDocument()
     })
   })
+
+  it('shows waiting message for non-target on pending_resolution', async () => {
+    mockApi.mockResolvedValue({
+      data: { market: { ...baseMarket, status: 'pending_resolution' }, bets: [], isTarget: false, userBalance: 1000 },
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/Waiting for Alice to resolve/)).toBeInTheDocument()
+    })
+  })
+
+  it('shows prompted message for target on pending_resolution', async () => {
+    mockApi.mockResolvedValue({
+      data: { market: { ...baseMarket, status: 'pending_resolution' }, bets: [], isTarget: true, userBalance: 1000 },
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/You will be prompted to resolve this market/)).toBeInTheDocument()
+    })
+  })
+
+  it('does not show resolve link for active markets', async () => {
+    mockApi.mockResolvedValue({
+      data: { market: { ...baseMarket, status: 'active' }, bets: [], isTarget: false, userBalance: 1000 },
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText('banana')).toBeInTheDocument()
+    })
+    expect(screen.queryByText(/Waiting for/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/prompted to resolve/)).not.toBeInTheDocument()
+  })
 })

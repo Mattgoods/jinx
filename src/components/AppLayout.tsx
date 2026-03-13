@@ -5,6 +5,7 @@ import { useUserSync } from '../hooks/useUserSync.tsx'
 import { useApiClient } from '../lib/api.ts'
 import { TokenAmount } from './ui'
 import { Sidebar } from './Sidebar.tsx'
+import { ResolutionModal } from './ResolutionModal.tsx'
 
 function extractGroupId(pathname: string): string | null {
   const match = pathname.match(/^\/group\/([^/]+)/)
@@ -123,6 +124,8 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+
+      <ResolutionModal />
     </div>
   )
 }

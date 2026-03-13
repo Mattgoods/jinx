@@ -337,6 +337,29 @@ Spec: `specs/11-resolve-payout-bug.md`
 - [ ] Run migrations against Supabase (005 then 008), verify Seth's balance and all resolved markets have non-NULL payouts
 - [ ] Mark Task 12.2 reconciliation subtask as complete if `004_reconcile_payouts.sql` is also run
 
+### Phase 12.6 — Target-Only Market Resolution with Modal ✅
+Spec: `specs/12-target-resolves-market.md`
+- [x] Update `api/markets/resolve.ts` to authorize `target_user_id` instead of `creator_id`
+- [x] Add API query support for fetching pending-resolution markets targeting the current user (use existing endpoint with filter to stay within 12-function limit)
+  - Added `handlePendingResolution` handler in `api/markets/index.ts` dispatched via `?action=pending-resolution`
+  - Vercel rewrite: `/api/markets/pending-resolution` → `/api/markets?action=pending-resolution` (no new function file)
+  - Lazy-transitions active markets past `window_end` to `pending_resolution` before querying
+  - Returns pending markets with secret word revealed (window is closed)
+- [x] Create `ResolutionModal` component — full-screen blocking overlay with YES/NO buttons, no dismiss
+  - `src/components/ResolutionModal.tsx` — modal with `z-[100]`, `aria-modal="true"`, no close button
+  - Shows secret word, pool amount, counter for multiple pending markets
+  - Sequential resolution: resolving one shows the next pending market immediately
+- [x] Add resolution modal trigger in `AppLayout` — fetches pending markets on load/route change, shows modal if any found
+  - `ResolutionModal` imported into `AppLayout.tsx`, rendered alongside page content
+  - Fetches `/api/markets/pending-resolution` on mount and on `location.pathname` change
+- [x] Update `MarketDetailPage` — removed old "Resolve market" link; shows "You will be prompted to resolve" for target on pending markets, "Waiting for [target name] to resolve" for others
+- [x] Remove `/markets/:id/resolve` route from `App.tsx` (ResolveMarketPage import removed)
+  - `ResolveMarketPage` file retained but unused — can be deleted in cleanup
+- [x] Add tests for ResolutionModal (rendering, non-dismissable, sequential resolution)
+  - 10 tests in `src/components/ResolutionModal.test.tsx`: empty state, modal rendering, no close button, YES/NO buttons, resolve YES/NO with toast, multiple market counter, sequential resolution, pool display, error handling
+  - 3 new tests in `MarketDetailPage.test.tsx`: waiting message for non-target, prompted message for target, no messages on active
+  - 120 tests total across 14 test files (all passing)
+
 ---
 
 ## Remaining Work
@@ -363,3 +386,4 @@ Spec: `specs/11-resolve-payout-bug.md`
 - **Test setup:** Vitest + jsdom + @testing-library/react + @testing-library/user-event. Manual cleanup in `src/test/setup.ts` (`afterEach(cleanup)`). Avatar `alt=""` gives `presentation` role, use `container.querySelector('img')` to test. MarketDetailPage tests mock `useParams`, `useApiClient`, `useToast`, and `CountdownTimer`.
 - **Input validation:** Shared server-side validators in `api/_lib/validation.ts` (UUID, string length, positive int, date, enum). Shared frontend validators in `src/lib/validation.ts`. `FormField` component supports `error` prop for inline field-level errors. API endpoints use `firstError()` to collect multiple validation checks. `requireEnvVars()` validates env vars at module load time.
 - **Casino UI theme:** Stake.us-inspired dark teal-navy palette (`#0F212E` bg, `#1A2C38` surface, `#00E701` neon green accent). Sidebar navigation replaces top nav bar (fixed on desktop, slide-over on mobile). `Card` supports `hover` prop for casino-card lift effect. `TokenAmount` uses `toLocaleString()` for comma-separated number formatting, supports `animate` prop for count up/down with ease-out cubic easing via `useAnimatedNumber` hook. All pages use `stat-card-*` gradient classes for stat displays. `AppLayout` uses `Promise.resolve().then()` pattern for setState-in-useEffect to satisfy `react-hooks/set-state-in-effect` lint rule.
+- **Resolution authority:** Only the market target (`target_user_id`) can resolve, not the creator. Authorization is in `api/markets/resolve.ts` (API layer), not the RPC. `ResolutionModal` in `AppLayout` fetches pending-resolution markets via `GET /api/markets/pending-resolution` (rewrite to `?action=pending-resolution` on `markets/index.ts`) on load and route changes — shows blocking full-screen modal with no close button. `ResolveMarketPage` and its route are removed.

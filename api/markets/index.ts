@@ -160,6 +160,50 @@ async function handleDetail(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({ data: response })
 }
 
+async function handlePendingResolution(req: VercelRequest, res: VercelResponse) {
+  const auth = await verifyAuth(req)
+
+  // Lazy transition: update active markets where window has closed (across all groups)
+  await supabase
+    .from('markets')
+    .update({ status: 'pending_resolution' })
+    .eq('status', 'active')
+    .lt('window_end', new Date().toISOString())
+
+  // Fetch all pending_resolution markets targeting the current user
+  const { data: markets, error: marketsError } = await supabase
+    .from('markets')
+    .select(`
+      id,
+      group_id,
+      secret_word,
+      target_user_id,
+      window_start,
+      window_end,
+      status,
+      total_pool,
+      yes_pool,
+      no_pool,
+      target:users!markets_target_user_id_fkey (display_name)
+    `)
+    .eq('target_user_id', auth.userId)
+    .eq('status', 'pending_resolution')
+    .order('window_end', { ascending: true })
+
+  if (marketsError) {
+    console.error('Pending resolution query error:', marketsError)
+    return res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch pending markets' } })
+  }
+
+  // Secret word is revealed since the market is past its time window
+  const formattedMarkets = (markets || []).map((market) => ({
+    ...market,
+    target_display_name: (market.target as unknown as { display_name: string })?.display_name,
+  }))
+
+  return res.status(200).json({ data: { markets: formattedMarkets } })
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: { code: 'METHOD_NOT_ALLOWED', message: 'GET only' } })
@@ -170,6 +214,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (action === 'detail') {
       return await handleDetail(req, res)
+    }
+
+    if (action === 'pending-resolution') {
+      return await handlePendingResolution(req, res)
     }
 
     return await handleList(req, res)

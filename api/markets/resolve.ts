@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: validationError } })
     }
 
-    // Get market for auth check (creator-only)
+    // Get market for auth check (target-only)
     const { data: market, error: marketError } = await supabase
       .from('markets')
       .select('*')
@@ -31,9 +31,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Market not found' } })
     }
 
-    // Only creator can resolve
-    if (market.creator_id !== auth.userId) {
-      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only the creator can resolve this market' } })
+    // Only the target can resolve (they know whether they said the word)
+    if (market.target_user_id !== auth.userId) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only the market target can resolve this market' } })
     }
 
     // Call the atomic resolve_market RPC — handles status validation,
