@@ -142,7 +142,7 @@ export function MarketDetailPage() {
               <path d="M10 18a8 8 0 100-16 8 8 0 000 16z"/>
             </svg>
             <span className="text-text-secondary">Pool:</span>
-            <TokenAmount amount={market.total_pool} />
+            <TokenAmount amount={market.total_pool} animate />
           </div>
           <div className="flex items-center gap-2">
             <svg className="h-4 w-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -227,12 +227,12 @@ export function MarketDetailPage() {
           <div className="mb-5 rounded-xl border border-border bg-bg-primary p-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-secondary">Potential payout</span>
-              <TokenAmount amount={previewPayout} className="text-lg" />
+              <TokenAmount amount={previewPayout} className="text-lg" animate />
             </div>
             {userBalance !== null && (
               <div className="mt-2 flex items-center justify-between text-sm">
                 <span className="text-text-secondary">Your balance</span>
-                <TokenAmount amount={userBalance} />
+                <TokenAmount amount={userBalance} animate />
               </div>
             )}
           </div>
